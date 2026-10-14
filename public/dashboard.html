@@ -55,6 +55,21 @@
         </div>
 
         <div class="row">
+          <label class="field"><span>Imagem do cabeçalho</span>
+            <input type="file" name="header_image_file" accept="image/png,image/jpeg,image/webp,image/gif">
+            <small>Opcional — aparece junto ao título no link público.</small>
+          </label>
+          <div class="field">
+            <span>Prévia</span>
+            <div class="image-preview" id="header-image-preview" hidden>
+              <img id="header-image-preview-img" alt="Prévia da imagem do cabeçalho">
+              <button class="btn btn-danger" type="button" id="remove-header-image">Remover</button>
+            </div>
+            <small class="muted" id="header-image-empty">Nenhuma imagem selecionada.</small>
+          </div>
+        </div>
+
+        <div class="row">
           <label class="field"><span>Rótulo da parcela</span>
             <input type="text" name="installment_label" placeholder="Ex.: 1ª PARCELA">
           </label>

@@ -60,6 +60,9 @@ h1, h2, h3 { margin: 0; }
 .field input:focus, .field textarea:focus, .field select:focus { outline: none; border-color: var(--green-dark); box-shadow: 0 0 0 3px #00c98933; }
 .field small { display: block; color: var(--muted); font-size: 12px; margin-top: 5px; }
 .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.image-preview { display: flex; align-items: center; gap: 12px; padding: 8px; border: 1px dashed #cfd9d6; border-radius: 11px; background: #f8fbfa; }
+.image-preview img { width: 92px; height: 46px; object-fit: contain; border-radius: 8px; background: #063b2c; }
+.image-preview .btn { padding: 8px 12px; }
 
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;

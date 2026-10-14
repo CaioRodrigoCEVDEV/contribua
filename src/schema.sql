@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS payment_tables (
   total_goal_cents   integer NOT NULL DEFAULT 0,
   pix_name           text NOT NULL DEFAULT '',
   pix_key            text NOT NULL DEFAULT '',
+  header_image       text NOT NULL DEFAULT '',
   allow_public_edit  boolean NOT NULL DEFAULT true,
   created_at         timestamptz NOT NULL DEFAULT now(),
   updated_at         timestamptz NOT NULL DEFAULT now()
@@ -44,6 +45,9 @@ CREATE INDEX IF NOT EXISTS payment_tables_user_idx ON payment_tables (user_id, c
 
 -- Garante a coluna updated_at em bancos criados antes desta versão.
 ALTER TABLE payment_tables ADD COLUMN IF NOT EXISTS updated_at timestamptz NOT NULL DEFAULT now();
+
+-- Imagem exibida no cabeçalho público (data URL). Bancos antigos ganham a coluna.
+ALTER TABLE payment_tables ADD COLUMN IF NOT EXISTS header_image text NOT NULL DEFAULT '';
 
 -- Renomeia a coluna antiga (bancos já criados antes do rebrand para "Contribua").
 DO $$

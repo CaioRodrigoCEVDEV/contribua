@@ -12,6 +12,14 @@ function toCents(value, fallback = 0) {
   return n;
 }
 
+function sanitizeImage(value, fallback = "") {
+  if (value === undefined) return fallback;
+  const str = String(value).trim();
+  if (!str) return "";
+  if (!/^data:image\/(png|jpe?g|webp|gif);base64,/i.test(str)) return fallback;
+  return str.length > 2_000_000 ? fallback : str;
+}
+
 function sanitizeFields(body, existing = {}) {
   const pick = (key, fallback = "") => (body[key] === undefined ? fallback : String(body[key]).trim());
   return {
@@ -23,6 +31,7 @@ function sanitizeFields(body, existing = {}) {
     total_goal_cents: toCents(body.total_goal_cents ?? existing.total_goal_cents ?? 0, 0),
     pix_name: pick("pix_name", existing.pix_name ?? "").slice(0, 80),
     pix_key: pick("pix_key", existing.pix_key ?? "").slice(0, 120),
+    header_image: sanitizeImage(body.header_image, existing.header_image ?? ""),
     allow_public_edit: body.allow_public_edit === undefined
       ? existing.allow_public_edit ?? true
       : Boolean(body.allow_public_edit)
@@ -57,6 +66,7 @@ function withStats(row) {
     total_goal_cents: row.total_goal_cents,
     pix_name: row.pix_name,
     pix_key: row.pix_key,
+    header_image: row.header_image,
     allow_public_edit: row.allow_public_edit,
     total_participants: Number(row.total_participants ?? 0),
     paid_participants: Number(row.paid_participants ?? 0),
@@ -98,13 +108,13 @@ router.post("/", async (req, res, next) => {
     const { rows } = await client.query(
       `INSERT INTO payment_tables
          (user_id, slug, title, subtitle, installment_label, installment_due,
-          installment_cents, total_goal_cents, pix_name, pix_key, allow_public_edit)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+          installment_cents, total_goal_cents, pix_name, pix_key, header_image, allow_public_edit)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
        RETURNING *`,
       [
         req.userId, slug, fields.title, fields.subtitle, fields.installment_label,
         fields.installment_due, fields.installment_cents, fields.total_goal_cents,
-        fields.pix_name, fields.pix_key, fields.allow_public_edit
+        fields.pix_name, fields.pix_key, fields.header_image, fields.allow_public_edit
       ]
     );
     const table = rows[0];
@@ -148,13 +158,13 @@ router.put("/:id", async (req, res, next) => {
       `UPDATE payment_tables
           SET title=$1, subtitle=$2, installment_label=$3, installment_due=$4,
               installment_cents=$5, total_goal_cents=$6, pix_name=$7, pix_key=$8,
-              allow_public_edit=$9, updated_at=now()
-        WHERE id=$10 AND user_id=$11
+              header_image=$9, allow_public_edit=$10, updated_at=now()
+        WHERE id=$11 AND user_id=$12
         RETURNING *`,
       [
         fields.title, fields.subtitle, fields.installment_label, fields.installment_due,
         fields.installment_cents, fields.total_goal_cents, fields.pix_name, fields.pix_key,
-        fields.allow_public_edit, req.params.id, req.userId
+        fields.header_image, fields.allow_public_edit, req.params.id, req.userId
       ]
     );
     res.json({ table: { ...withStats(rows[0]), participants: await loadParticipants(req.params.id) } });

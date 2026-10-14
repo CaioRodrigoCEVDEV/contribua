@@ -10,9 +10,14 @@
   const participantsList = document.getElementById("participants-list");
   const deleteBtn = document.getElementById("delete-table");
   const saveBtn = document.getElementById("save-table");
+  const headerImageInput = form.elements.header_image_file;
+  const headerPreview = document.getElementById("header-image-preview");
+  const headerPreviewImg = document.getElementById("header-image-preview-img");
+  const headerEmpty = document.getElementById("header-image-empty");
 
   let mode = "create";
   let current = null;
+  let headerImage = "";
 
   App.currentUser().then((user) => {
     if (!user) {
@@ -102,7 +107,75 @@
     f.pix_key.value = table?.pix_key || "";
     f.allow_public_edit.checked = table ? table.allow_public_edit : true;
     f.participants_bulk.value = "";
+    headerImage = table?.header_image || "";
+    headerImageInput.value = "";
+    renderHeaderPreview();
   }
+
+  function renderHeaderPreview() {
+    const has = Boolean(headerImage);
+    headerPreview.hidden = !has;
+    headerEmpty.hidden = has;
+    if (has) headerPreviewImg.src = headerImage;
+    else headerPreviewImg.removeAttribute("src");
+  }
+
+  async function fileToDataUrl(file) {
+    const dataUrl = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error("Não foi possível ler a imagem."));
+      reader.onload = () => resolve(reader.result);
+      reader.readAsDataURL(file);
+    });
+    const img = await new Promise((resolve, reject) => {
+      const image = new Image();
+      image.onload = () => resolve(image);
+      image.onerror = () => reject(new Error("Arquivo de imagem inválido."));
+      image.src = dataUrl;
+    });
+    const keepAlpha = /png|webp/i.test(file.type);
+    const mime = keepAlpha ? "image/png" : "image/jpeg";
+    let maxDim = 900;
+    let result = "";
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+      const width = Math.max(1, Math.round(img.width * scale));
+      const height = Math.max(1, Math.round(img.height * scale));
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      if (!keepAlpha) { ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, width, height); }
+      ctx.drawImage(img, 0, 0, width, height);
+      result = canvas.toDataURL(mime, 0.85);
+      if (result.length <= 2_000_000) return result;
+      maxDim = Math.round(maxDim * 0.75);
+    }
+    return result;
+  }
+
+  headerImageInput.addEventListener("change", async (event) => {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      App.toast("Selecione um arquivo de imagem.");
+      event.target.value = "";
+      return;
+    }
+    try {
+      headerImage = await fileToDataUrl(file);
+      renderHeaderPreview();
+    } catch (error) {
+      App.toast(error.message);
+    } finally {
+      event.target.value = "";
+    }
+  });
+
+  document.getElementById("remove-header-image").addEventListener("click", () => {
+    headerImage = "";
+    renderHeaderPreview();
+  });
 
   function openCreate() {
     mode = "create";
@@ -222,6 +295,7 @@
       total_goal_cents: reais(f.goal_reais.value, 0),
       pix_name: f.pix_name.value.trim(),
       pix_key: f.pix_key.value.trim(),
+      header_image: headerImage,
       allow_public_edit: f.allow_public_edit.checked,
       participants_bulk: f.participants_bulk.value
     };

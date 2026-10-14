@@ -13,7 +13,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const publicDir = join(here, "..", "public");
 
 const app = express();
-app.use(express.json({ limit: "256kb" }));
+app.use(express.json({ limit: "3mb" }));
 app.use(cookieParser());
 
 app.get("/health", async (req, res) => {

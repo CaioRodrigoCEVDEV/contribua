@@ -3,6 +3,8 @@
   const tbody = document.getElementById("participants");
   const poster = document.querySelector(".poster");
   const printButton = document.getElementById("print-button");
+  const heroImage = document.getElementById("hero-image");
+  const heroIcon = document.getElementById("hero-pin-icon");
 
   let table = null;
 
@@ -18,6 +20,16 @@
     document.title = `${table.title} — pagamentos`;
     setText("poster-title", table.title);
     setText("poster-subtitle", table.subtitle);
+
+    if (table.header_image) {
+      heroImage.src = table.header_image;
+      heroImage.hidden = false;
+      heroIcon.hidden = true;
+    } else {
+      heroImage.hidden = true;
+      heroImage.removeAttribute("src");
+      heroIcon.hidden = false;
+    }
     setText("installment-label-th", table.installment_label);
     setText("installment-due-th", table.installment_due);
     setText("installment-label-card", table.installment_label);

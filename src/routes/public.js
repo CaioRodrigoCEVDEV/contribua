@@ -21,6 +21,7 @@ function publicShape(table, participants) {
     total_goal_cents: table.total_goal_cents,
     pix_name: table.pix_name,
     pix_key: table.pix_key,
+    header_image: table.header_image,
     allow_public_edit: table.allow_public_edit,
     summary: {
       total,

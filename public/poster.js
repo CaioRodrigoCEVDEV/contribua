@@ -122,7 +122,13 @@
       poster.style.transform = "none";
       poster.style.position = "static";
       await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
-      const canvas = await html2canvas(poster, { backgroundColor: null, scale: 2, useCORS: true });
+      const canvas = await html2canvas(poster, {
+        backgroundColor: null,
+        scale: 2,
+        useCORS: true,
+        windowWidth: 1500,
+        windowHeight: Math.max(poster.scrollHeight, 1200)
+      });
       const blob = await new Promise((r) => canvas.toBlob(r, "image/png"));
       if (!blob) throw new Error("falha");
       await shareOrDownload(blob);

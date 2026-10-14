@@ -14,6 +14,8 @@
   const headerPreview = document.getElementById("header-image-preview");
   const headerPreviewImg = document.getElementById("header-image-preview-img");
   const headerEmpty = document.getElementById("header-image-empty");
+  const galleryInput = document.getElementById("gallery-input");
+  const galleryList = document.getElementById("gallery-list");
 
   let mode = "create";
   let current = null;
@@ -284,6 +286,8 @@
     f.pix_name.value = table?.pix_name || "";
     f.pix_key.value = table?.pix_key || "";
     f.allow_public_edit.checked = table ? table.allow_public_edit : true;
+    f.location_address.value = table?.location_address || "";
+    f.location_url.value = table?.location_url || "";
     f.participants_bulk.value = "";
     headerImage = table?.header_image || "";
     headerImageInput.value = "";
@@ -298,7 +302,7 @@
     else headerPreviewImg.removeAttribute("src");
   }
 
-  async function fileToDataUrl(file) {
+  async function fileToDataUrl(file, startDim = 900) {
     const dataUrl = await new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onerror = () => reject(new Error("Não foi possível ler a imagem."));
@@ -313,7 +317,7 @@
     });
     const keepAlpha = /png|webp/i.test(file.type);
     const mime = keepAlpha ? "image/png" : "image/jpeg";
-    let maxDim = 900;
+    let maxDim = startDim;
     let result = "";
     for (let attempt = 0; attempt < 5; attempt += 1) {
       const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
@@ -355,6 +359,52 @@
     renderHeaderPreview();
   });
 
+  function galleryThumb(image) {
+    const item = document.createElement("div");
+    item.className = "gallery-item";
+    item.dataset.id = image.id;
+    item.innerHTML = `
+      <img src="${image.url}" alt="" loading="lazy">
+      <button class="del" type="button" data-role="del" title="Remover">×</button>`;
+    return item;
+  }
+
+  function renderGallery(images) {
+    galleryList.innerHTML = "";
+    (images || []).forEach((image) => galleryList.appendChild(galleryThumb(image)));
+  }
+
+  galleryInput.addEventListener("change", async (event) => {
+    const files = Array.from(event.target.files || []);
+    event.target.value = "";
+    if (!files.length) return;
+    if (galleryList.children.length + files.length > 12) {
+      App.toast("Limite de 12 fotos.");
+      return;
+    }
+    for (const file of files) {
+      if (!file.type.startsWith("image/")) continue;
+      try {
+        const dataUrl = await fileToDataUrl(file, 1600);
+        const { image } = await App.api(`/api/tables/${current.id}/images`, { method: "POST", body: { image: dataUrl } });
+        galleryList.appendChild(galleryThumb(image));
+      } catch (error) {
+        App.toast(error.message);
+      }
+    }
+  });
+
+  galleryList.addEventListener("click", async (event) => {
+    if (event.target.dataset.role !== "del") return;
+    const item = event.target.closest(".gallery-item");
+    try {
+      await App.api(`/api/tables/${current.id}/images/${item.dataset.id}`, { method: "DELETE" });
+      item.remove();
+    } catch (error) {
+      App.toast(error.message);
+    }
+  });
+
   function openCreate() {
     mode = "create";
     current = null;
@@ -379,6 +429,7 @@
       deleteBtn.hidden = false;
       fillForm(table);
       renderParticipants(table.participants);
+      renderGallery(table.images);
       openEditor();
     } catch (error) {
       App.toast(error.message);
@@ -479,6 +530,8 @@
       pix_name: f.pix_name.value.trim(),
       pix_key: f.pix_key.value.trim(),
       header_image: headerImage,
+      location_address: f.location_address.value.trim(),
+      location_url: f.location_url.value.trim(),
       allow_public_edit: f.allow_public_edit.checked,
       participants_bulk: f.participants_bulk.value
     };

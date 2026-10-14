@@ -24,6 +24,7 @@
   <link rel="stylesheet" href="/poster.css">
 </head>
 <body>
+  <div class="poster-stage">
   <main class="poster">
     <header class="hero">
       <div class="hero-bg" id="hero-bg" aria-hidden="true"></div>
@@ -99,6 +100,28 @@
       </aside>
     </section>
   </main>
+  </div>
+
+  <section class="place" id="place" hidden>
+    <div class="place-inner">
+      <h2 class="place-title" id="place-title">O local</h2>
+      <div class="carousel" id="carousel" hidden>
+        <div class="carousel-track" id="carousel-track"></div>
+        <button class="carousel-nav prev" id="carousel-prev" type="button" aria-label="Anterior">‹</button>
+        <button class="carousel-nav next" id="carousel-next" type="button" aria-label="Próxima">›</button>
+        <div class="carousel-dots" id="carousel-dots"></div>
+      </div>
+      <a class="place-address" id="place-address" hidden></a>
+      <div class="place-map" id="place-map" hidden></div>
+    </div>
+  </section>
+
+  <div class="lightbox" id="lightbox" hidden>
+    <button class="lightbox-close" id="lightbox-close" type="button" aria-label="Fechar">×</button>
+    <button class="lightbox-nav prev" id="lightbox-prev" type="button" aria-label="Anterior">‹</button>
+    <img id="lightbox-img" alt="">
+    <button class="lightbox-nav next" id="lightbox-next" type="button" aria-label="Próxima">›</button>
+  </div>
 
   <div class="toolbar">
     <button id="print-button" class="tool-button" type="button">Imprimir imagem</button>

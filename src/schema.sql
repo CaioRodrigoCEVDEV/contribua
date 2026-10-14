@@ -57,6 +57,20 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS openai_key text NOT NULL DEFAULT '';
 ALTER TABLE users ADD COLUMN IF NOT EXISTS openai_model text NOT NULL DEFAULT '';
 ALTER TABLE users ADD COLUMN IF NOT EXISTS openai_base_url text NOT NULL DEFAULT '';
 
+-- Local do evento (endereço + link do Google Maps) e galeria de fotos do local.
+ALTER TABLE payment_tables ADD COLUMN IF NOT EXISTS location_address text NOT NULL DEFAULT '';
+ALTER TABLE payment_tables ADD COLUMN IF NOT EXISTS location_url text NOT NULL DEFAULT '';
+
+CREATE TABLE IF NOT EXISTS table_images (
+  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  table_id   uuid NOT NULL REFERENCES payment_tables(id) ON DELETE CASCADE,
+  image      text NOT NULL,
+  position   integer NOT NULL DEFAULT 0,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS table_images_idx ON table_images (table_id, position);
+
 -- Renomeia a coluna antiga (bancos já criados antes do rebrand para "Contribua").
 DO $$
 BEGIN

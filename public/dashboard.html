@@ -143,6 +143,21 @@
             <input type="text" id="new-participant" placeholder="Nome do participante">
             <button class="btn" id="add-participant" type="button">Adicionar</button>
           </div>
+
+          <div class="divider"></div>
+          <div class="section-title">Local (carrossel e mapa)</div>
+          <label class="field"><span>Endereço do local (opcional)</span>
+            <input type="text" name="location_address" placeholder="Ex.: Rua das Flores, 123 — Centro, Cidade">
+          </label>
+          <label class="field"><span>Link do Google Maps</span>
+            <input type="text" name="location_url" placeholder="https://maps.app.goo.gl/...">
+            <small>Cole o link do Google Maps do local.</small>
+          </label>
+          <label class="field"><span>Fotos do local</span>
+            <input type="file" id="gallery-input" accept="image/*" multiple>
+            <small>Até 12 fotos. Aparecem na página pública e não saem no print.</small>
+          </label>
+          <div class="gallery-list" id="gallery-list"></div>
         </div>
         </div>
         </div>

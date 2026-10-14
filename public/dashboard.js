@@ -116,7 +116,11 @@
   });
 
   async function duplicateTable(id, title) {
-    if (!confirm(`Duplicar a tabela "${title}"?\n\nOs participantes serão copiados, mas o status de pagamento será reiniciado.`)) return;
+    const ok = await App.confirm("Os participantes serão copiados, mas o status de pagamento será reiniciado.", {
+      title: `Duplicar "${title}"?`,
+      confirmLabel: "Duplicar"
+    });
+    if (!ok) return;
     try {
       await App.api(`/api/tables/${id}/duplicate`, { method: "POST" });
       App.toast("Tabela duplicada!");
@@ -290,7 +294,12 @@
   participantsList.addEventListener("click", async (event) => {
     if (event.target.dataset.role !== "del") return;
     const row = event.target.closest(".participant-row");
-    if (!confirm("Excluir este participante?")) return;
+    const ok = await App.confirm("O participante será removido desta tabela.", {
+      title: "Excluir participante?",
+      confirmLabel: "Excluir",
+      danger: true
+    });
+    if (!ok) return;
     try {
       await App.api(`/api/tables/${current.id}/participants/${row.dataset.id}`, { method: "DELETE" });
       row.remove();
@@ -368,7 +377,12 @@
   });
 
   deleteBtn.addEventListener("click", async () => {
-    if (!confirm(`Excluir a tabela "${current.title}"? Esta ação não pode ser desfeita.`)) return;
+    const ok = await App.confirm(`A tabela "${current.title}" e todos os participantes serão removidos. Esta ação não pode ser desfeita.`, {
+      title: "Excluir tabela?",
+      confirmLabel: "Excluir",
+      danger: true
+    });
+    if (!ok) return;
     try {
       await App.api(`/api/tables/${current.id}`, { method: "DELETE" });
       App.toast("Tabela excluída.");

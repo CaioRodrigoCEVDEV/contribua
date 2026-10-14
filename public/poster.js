@@ -13,7 +13,7 @@
   }
 
   function render() {
-    const { installment_cents: cents, summary, participants, total_goal_cents: goal } = table;
+    const { installment_cents: cents, summary, participants } = table;
     const totalCents = participants.length * cents;
 
     document.title = `${table.title} — pagamentos`;
@@ -34,7 +34,7 @@
     setText("pending-total", App.money(summary.pending_cents));
     setText("pix-name", table.pix_name || "—");
     setText("pix-key", table.pix_key || "—");
-    setText("installment-caption", goal > 0 ? `${Math.round((totalCents / goal) * 100)}% do valor total` : "");
+    setText("installment-caption", totalCents > 0 ? `${Math.round((summary.received_cents / totalCents) * 100)}% do valor total pago` : "");
 
     tbody.innerHTML = "";
     participants.forEach((p, index) => {

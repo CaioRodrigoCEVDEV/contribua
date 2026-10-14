@@ -24,5 +24,16 @@ jobs:
           port: ${{ secrets.SSH_PORT || 22 }}
           script_stop: true
           script: |
-            cd "${{ secrets.APP_DIR }}"
+            set -eu
+            APP_DIR="${{ secrets.APP_DIR }}"
+            if [ -z "$APP_DIR" ]; then APP_DIR="/home/contribua"; fi
+            echo "==> APP_DIR=$APP_DIR"
+            cd "$APP_DIR"
+            echo "==> Diretório atual: $(pwd)"
+            if [ ! -f deploy.sh ]; then
+              echo "==> deploy.sh não encontrado em $(pwd). Conteúdo:"
+              ls -la
+              echo "==> Ajuste o secret APP_DIR para o diretório que contém o deploy.sh."
+              exit 1
+            fi
             bash deploy.sh

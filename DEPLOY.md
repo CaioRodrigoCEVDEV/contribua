@@ -125,6 +125,12 @@ Cadastre os **secrets** em *GitHub → Settings → Secrets and variables → Ac
 Para a chave: gere um par dedicado (`ssh-keygen -t ed25519`) e adicione a chave
 **pública** ao `~/.ssh/authorized_keys` do usuário no servidor.
 
+> ⚠️ O `APP_DIR` precisa apontar para o diretório que contém o `deploy.sh`
+> (ex.: `/home/contribua`). Se estiver vazio, o workflow usa `/home/contribua` como
+> padrão. Se o erro for `bash: deploy.sh: No such file or directory`, o log do Actions
+> mostra o diretório acessado (`APP_DIR=...` / `Diretório atual: ...`) para você corrigir
+> o secret. `APP_DIR` deve ser cadastrado como **Secret** (não como *Variable*).
+
 ### O que o `deploy.sh` faz
 
 1. `git fetch` + `git reset --hard origin/main` (publica exatamente o que está no repositório).

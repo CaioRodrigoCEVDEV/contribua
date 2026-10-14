@@ -66,19 +66,20 @@
           <div class="summary-row"><span><b class="mini-icon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#111820" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg></b> Total recebido</span><strong id="received-total">R$ 0,00</strong></div>
           <div class="summary-row"><span><b class="mini-icon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#111820" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg></b> Total pendente</span><strong id="pending-total">R$ 0,00</strong></div>
         </section>
-      </aside>
 
-      <footer class="pix-panel">
-        <div class="pix-brand">
-          <span class="pix-icon"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5.283 18.36a3.505 3.505 0 0 0 2.493-1.032l3.6-3.6a.684.684 0 0 1 .946 0l3.613 3.613a3.504 3.504 0 0 0 2.493 1.032h.71l-4.56 4.56a3.647 3.647 0 0 1-5.156 0L4.85 18.36ZM18.428 5.627a3.505 3.505 0 0 0-2.493 1.032l-3.613 3.614a.67.67 0 0 1-.946 0l-3.6-3.6A3.505 3.505 0 0 0 5.283 5.64h-.434l4.573-4.572a3.646 3.646 0 0 1 5.156 0l4.559 4.559ZM1.068 9.422 3.79 6.699h1.492a2.483 2.483 0 0 1 1.744.722l3.6 3.6a1.73 1.73 0 0 0 2.443 0l3.614-3.613a2.482 2.482 0 0 1 1.744-.723h1.767l2.737 2.737a3.646 3.646 0 0 1 0 5.156l-2.736 2.736h-1.768a2.482 2.482 0 0 1-1.744-.722l-3.613-3.613a1.77 1.77 0 0 0-2.444 0l-3.6 3.6a2.483 2.483 0 0 1-1.744.722H3.791l-2.723-2.723a3.646 3.646 0 0 1 0-5.156"></path></svg></span>
-          <div><h2>PAGAMENTO VIA PIX</h2><p>Envie o valor da sua parcela para a chave abaixo:</p></div>
-        </div>
-        <div class="pix-key">
-          <span class="person-icon"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0 2c-4.42 0-8 2.24-8 5v1h16v-1c0-2.76-3.58-5-8-5z"></path></svg></span>
-          <div><small>Nome da beneficiária</small><strong id="pix-name">—</strong><small>Chave Pix</small><b id="pix-key">—</b></div>
-          <button id="copy-pix" class="copy-button" type="button" title="Copiar chave Pix" aria-label="Copiar chave Pix"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
-        </div>
-      </footer>
+        <section class="card pix-card">
+          <div class="pix-key">
+            <span class="pix-icon"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5.283 18.36a3.505 3.505 0 0 0 2.493-1.032l3.6-3.6a.684.684 0 0 1 .946 0l3.613 3.613a3.504 3.504 0 0 0 2.493 1.032h.71l-4.56 4.56a3.647 3.647 0 0 1-5.156 0L4.85 18.36ZM18.428 5.627a3.505 3.505 0 0 0-2.493 1.032l-3.613 3.614a.67.67 0 0 1-.946 0l-3.6-3.6A3.505 3.505 0 0 0 5.283 5.64h-.434l4.573-4.572a3.646 3.646 0 0 1 5.156 0l4.559 4.559ZM1.068 9.422 3.79 6.699h1.492a2.483 2.483 0 0 1 1.744.722l3.6 3.6a1.73 1.73 0 0 0 2.443 0l3.614-3.613a2.482 2.482 0 0 1 1.744-.723h1.767l2.737 2.737a3.646 3.646 0 0 1 0 5.156l-2.736 2.736h-1.768a2.482 2.482 0 0 1-1.744-.722l-3.613-3.613a1.77 1.77 0 0 0-2.444 0l-3.6 3.6a2.483 2.483 0 0 1-1.744.722H3.791l-2.723-2.723a3.646 3.646 0 0 1 0-5.156"></path></svg></span>
+            <div class="pix-info">
+              <small>Nome da beneficiária</small>
+              <strong id="pix-name">—</strong>
+              <small>Chave Pix</small>
+              <b id="pix-key">—</b>
+            </div>
+            <button id="copy-pix" class="copy-button" type="button" title="Copiar chave Pix" aria-label="Copiar chave Pix"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+          </div>
+        </section>
+      </aside>
     </section>
     <div class="bottom-note">Marque cada participante como pago após confirmar o recebimento. Os totais são atualizados automaticamente.</div>
   </main>

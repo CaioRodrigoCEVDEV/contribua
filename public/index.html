@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Contribua — Gerenciamento de contribuições</title>
+  <link rel="stylesheet" href="platform.css">
+</head>
+<body>
+  <main class="auth-page">
+    <section class="auth-hero">
+      <div class="brand">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 22s7-6.3 7-12a7 7 0 1 0-14 0c0 5.7 7 12 7 12z"></path>
+          <circle cx="12" cy="10" r="2.7"></circle>
+        </svg>
+        <div>
+          <div class="eyebrow">VAQUINHA</div>
+          <h1>CONTRIBUA</h1>
+        </div>
+      </div>
+      <p>Crie vaquinhas e listas de contribuição, acompanhe quem já pagou e compartilhe um link para o grupo inteiro marcar as parcelas.</p>
+      <ul>
+        <li><b>✓</b> Várias listas por conta</li>
+        <li><b>✓</b> Link público para compartilhar no WhatsApp</li>
+        <li><b>✓</b> Total recebido e pendente automáticos</li>
+        <li><b>✓</b> Exportar a lista como imagem</li>
+      </ul>
+    </section>
+
+    <section class="auth-panel">
+      <div class="auth-card">
+        <div class="tabs">
+          <button id="tab-login" class="active" type="button">Entrar</button>
+          <button id="tab-register" type="button">Criar conta</button>
+        </div>
+
+        <form id="form-login">
+          <label class="field"><span>E-mail</span>
+            <input type="email" name="email" autocomplete="email" required placeholder="voce@email.com">
+          </label>
+          <label class="field"><span>Senha</span>
+            <input type="password" name="password" autocomplete="current-password" required placeholder="••••••">
+          </label>
+          <button class="btn btn-primary btn-block" type="submit">Entrar</button>
+        </form>
+
+        <form id="form-register" hidden>
+          <label class="field"><span>Nome</span>
+            <input type="text" name="name" autocomplete="name" required placeholder="Seu nome">
+          </label>
+          <label class="field"><span>E-mail</span>
+            <input type="email" name="email" autocomplete="email" required placeholder="voce@email.com">
+          </label>
+          <label class="field"><span>Senha</span>
+            <input type="password" name="password" autocomplete="new-password" required minlength="6" placeholder="mínimo 6 caracteres">
+          </label>
+          <button class="btn btn-primary btn-block" type="submit">Criar conta</button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="common.js"></script>
+  <script src="index.js"></script>
+</body>
+</html>

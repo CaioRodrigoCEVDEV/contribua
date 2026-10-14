@@ -1,0 +1,18 @@
+# SOMENTE para testes/desenvolvimento local.
+# Em produção o PostgreSQL é externo (veja DEPLOY.md).
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: contribua-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: contribua
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - contribua_pgdata:/var/lib/postgresql/data
+
+volumes:
+  contribua_pgdata:

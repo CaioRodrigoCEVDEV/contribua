@@ -19,6 +19,32 @@
   let current = null;
   let headerImage = "";
 
+  const themeToggle = document.getElementById("theme-toggle");
+
+  function applyTheme(theme, persist) {
+    document.documentElement.dataset.theme = theme;
+    if (persist) {
+      try { localStorage.setItem("contribua-theme", theme); } catch (error) { /* ignora */ }
+    }
+    themeToggle.setAttribute("aria-pressed", theme === "dark");
+  }
+
+  themeToggle.addEventListener("click", () => {
+    const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+    applyTheme(next, true);
+  });
+
+  applyTheme(document.documentElement.dataset.theme || "light", false);
+
+  const darkMedia = window.matchMedia("(prefers-color-scheme: dark)");
+  if (darkMedia.addEventListener) {
+    darkMedia.addEventListener("change", (event) => {
+      let stored = null;
+      try { stored = localStorage.getItem("contribua-theme"); } catch (error) { /* ignora */ }
+      if (!stored) applyTheme(event.matches ? "dark" : "light", false);
+    });
+  }
+
   App.currentUser().then((user) => {
     if (!user) {
       window.location.replace("/");
@@ -219,7 +245,7 @@
     row.innerHTML = `
       <span class="idx">${index + 1}</span>
       <input type="text" value="${App.escape(p.name)}" data-role="name">
-      <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:#5e6875">
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)">
         <input type="checkbox" data-role="paid" ${p.paid ? "checked" : ""} style="width:auto"> Pago
       </label>
       <button class="del" type="button" data-role="del" title="Excluir">×</button>`;

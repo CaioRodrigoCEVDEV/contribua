@@ -235,6 +235,12 @@ router.post("/:id/message", async (req, res, next) => {
     const total = participants.length;
     const paid = participants.filter((p) => p.paid).length;
 
+    const requestedOrigin = String(req.body?.origin || "").trim().replace(/\/+$/, "");
+    const base = /^https?:\/\//i.test(requestedOrigin)
+      ? requestedOrigin
+      : `${req.protocol}://${req.get("host")}`;
+    const link = `${base}/t/${table.slug}`;
+
     let message;
     try {
       message = await generateWhatsappMessage({
@@ -254,7 +260,8 @@ router.post("/:id/message", async (req, res, next) => {
           paidParticipants: paid,
           pendingParticipants: total - paid,
           receivedCents: paid * table.installment_cents,
-          pendingCents: (total - paid) * table.installment_cents
+          pendingCents: (total - paid) * table.installment_cents,
+          link
         }
       });
     } catch (error) {

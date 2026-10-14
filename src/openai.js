@@ -10,13 +10,13 @@ Regras obrigatórias:
 - A mensagem é feita de várias linhas curtas, NUNCA um parágrafo corrido.
 - Cada informação numérica fica em sua própria linha, no formato "EMOJI Rótulo: VALOR".
 - Separe os blocos com uma linha em branco.
-- Preserve EXATAMENTE todos os números, valores, emojis e nomes.
+- Preserve EXATAMENTE todos os números, valores, emojis, nomes e o link no final.
 - Não use markdown (sem *, # ou crases). Retorne apenas a mensagem final.`;
 
 function buildDraft(data) {
   const label = data.installmentLabel || "1ª PARCELA";
   const event = [data.title, data.subtitle].filter(Boolean).join(" — ") || "nossa contribuição";
-  return [
+  const lines = [
     "Fala, pessoal! 🎄🏡",
     "",
     `Passando para atualizar vocês sobre os pagamentos de ${event}.`,
@@ -36,7 +36,16 @@ function buildDraft(data) {
     `🔑 ${data.pixKey || "-"}`,
     "",
     `Vamos manter tudo organizado para aproveitarmos ${data.subtitle || "tudo"} juntos! 🎉`
-  ].join("\n");
+  ];
+  if (data.link) {
+    lines.push("", "📲 Acompanhe a lista e veja quem já pagou:", data.link);
+  }
+  return lines.join("\n");
+}
+
+function withLink(message, link) {
+  if (!link || message.includes(link)) return message;
+  return `${message}\n\n📲 Acompanhe a lista e veja quem já pagou:\n${link}`;
 }
 
 function buildUserPrompt(data, draft) {
@@ -46,7 +55,7 @@ function buildUserPrompt(data, draft) {
     "Regras:",
     "- Mantenha EXATAMENTE a mesma estrutura: cada informação em sua própria linha, com uma linha em branco entre os blocos.",
     "- NÃO junte tudo em um único parágrafo.",
-    "- Preserve TODOS os números, valores, emojis e nomes sem alteração.",
+    "- Preserve TODOS os números, valores, emojis, nomes e o link no final sem alteração.",
     "- Você pode ajustar as frases de saudação, contexto e despedida, mas mantenha o mesmo sentido.",
     "- Não use markdown.",
     "",
@@ -107,9 +116,10 @@ export async function generateWhatsappMessage({ apiKey, baseUrl, model, data }) 
 
   const json = await response.json();
   const raw = json?.choices?.[0]?.message?.content;
-  if (!raw) return draft;
+  if (!raw) return withLink(draft, data.link);
 
-  const message = String(raw).trim().replace(/^```[a-z]*\n?/i, "").replace(/```$/, "").trim();
+  let message = String(raw).trim().replace(/^```[a-z]*\n?/i, "").replace(/```$/, "").trim();
   const enoughLines = message.split("\n").filter((line) => line.trim()).length >= 6;
-  return enoughLines ? message : draft;
+  if (!enoughLines) message = draft;
+  return withLink(message, data.link);
 }

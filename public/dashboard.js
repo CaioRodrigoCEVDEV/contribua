@@ -203,7 +203,10 @@
       <h3 class="modal-title">Mensagem para o WhatsApp</h3>
       <p class="modal-message">Gerando a mensagem com IA, aguarde...</p>`);
     try {
-      const { message } = await App.api(`/api/tables/${id}/message`, { method: "POST" });
+      const { message } = await App.api(`/api/tables/${id}/message`, {
+        method: "POST",
+        body: { origin: window.location.origin }
+      });
       const modal = overlay.querySelector(".modal");
       modal.innerHTML = `
         <h3 class="modal-title">Mensagem para o WhatsApp</h3>

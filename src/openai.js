@@ -4,40 +4,65 @@ function brl(cents) {
   return (Number(cents) / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
-const SYSTEM_PROMPT = `Você escreve mensagens curtas e simpáticas para grupos de WhatsApp, em português do Brasil,
-atualizando os participantes sobre o andamento de uma vaquinha/contribuição.
-Regras:
-- Use EXATAMENTE os números e valores informados. Nunca invente nem recalcule valores.
-- Use emojis com moderação, no estilo das mensagens de organização de vaquinha.
-- Estrutura: saudação, contexto do evento, valores (total, participantes, valor por pessoa, recebido, faltante),
-  agradecimento a quem pagou, pedido de pagamento pelo PIX com nome e chave, e uma despedida amigável.
-- Não use markdown nem blocos de código. Retorne apenas o texto final, pronto para enviar.`;
+const SYSTEM_PROMPT = `Você escreve mensagens de atualização de vaquinha/contribuição para grupos de WhatsApp, em português do Brasil.
 
-function buildUserPrompt(data) {
-  const lines = [
-    `Contexto da tabela:`,
-    `- Título: ${data.title || "-"}`,
-    `- Evento / subtítulo: ${data.subtitle || "-"}`,
-    `- Rótulo da parcela: ${data.installmentLabel || "1ª PARCELA"}`,
-    data.installmentDue ? `- Vencimento: ${data.installmentDue}` : null,
-    `- Valor total: ${brl(data.totalGoalCents)}`,
-    `- Valor por pessoa: ${brl(data.installmentCents)}`,
-    `- Total de participantes: ${data.totalParticipants}`,
-    `- Já pagaram: ${data.paidParticipants}`,
-    `- Ainda não pagaram: ${data.pendingParticipants}`,
-    `- Valor recebido até o momento: ${brl(data.receivedCents)}`,
-    `- Falta arrecadar (da parcela): ${brl(data.pendingCents)}`,
-    `- Nome do beneficiário do PIX: ${data.pixName || "-"}`,
-    `- Chave PIX: ${data.pixKey || "-"}`,
+Regras obrigatórias:
+- A mensagem é feita de várias linhas curtas, NUNCA um parágrafo corrido.
+- Cada informação numérica fica em sua própria linha, no formato "EMOJI Rótulo: VALOR".
+- Separe os blocos com uma linha em branco.
+- Preserve EXATAMENTE todos os números, valores, emojis e nomes.
+- Não use markdown (sem *, # ou crases). Retorne apenas a mensagem final.`;
+
+function buildDraft(data) {
+  const label = data.installmentLabel || "1ª PARCELA";
+  const event = [data.title, data.subtitle].filter(Boolean).join(" — ") || "nossa contribuição";
+  return [
+    "Fala, pessoal! 🎄🏡",
     "",
-    "Gere a mensagem de atualização para enviar no grupo do WhatsApp."
-  ];
-  return lines.filter((line) => line !== null).join("\n");
+    `Passando para atualizar vocês sobre os pagamentos de ${event}.`,
+    "",
+    `💰 Valor total: ${brl(data.totalGoalCents)}`,
+    `👥 Participantes: ${data.totalParticipants} pessoas`,
+    `💵 ${label} por pessoa: ${brl(data.installmentCents)}`,
+    "",
+    `✅ Valor recebido até o momento: ${brl(data.receivedCents)}`,
+    `❗ Falta arrecadar: ${brl(data.pendingCents)}`,
+    "",
+    "Obrigado a quem já realizou o pagamento! 🙏",
+    "",
+    "Quem ainda não pagou, peço que faça o PIX dentro do prazo e me avise para que eu possa atualizar nosso controle.",
+    "",
+    `🤑 PIX — ${data.pixName || "-"}`,
+    `🔑 ${data.pixKey || "-"}`,
+    "",
+    `Vamos manter tudo organizado para aproveitarmos ${data.subtitle || "tudo"} juntos! 🎉`
+  ].join("\n");
+}
+
+function buildUserPrompt(data, draft) {
+  return [
+    "Deixe a mensagem abaixo mais natural e simpática para enviar no grupo do WhatsApp.",
+    "",
+    "Regras:",
+    "- Mantenha EXATAMENTE a mesma estrutura: cada informação em sua própria linha, com uma linha em branco entre os blocos.",
+    "- NÃO junte tudo em um único parágrafo.",
+    "- Preserve TODOS os números, valores, emojis e nomes sem alteração.",
+    "- Você pode ajustar as frases de saudação, contexto e despedida, mas mantenha o mesmo sentido.",
+    "- Não use markdown.",
+    "",
+    "Mensagem:",
+    '"""',
+    draft,
+    '"""',
+    "",
+    "Retorne apenas a mensagem final, pronta para enviar."
+  ].join("\n");
 }
 
 export async function generateWhatsappMessage({ apiKey, baseUrl, model, data }) {
   if (!apiKey) throw new Error("API key não configurada.");
 
+  const draft = buildDraft(data);
   const url = `${(baseUrl || DEFAULT_BASE_URL).replace(/\/+$/, "")}/chat/completions`;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 45000);
@@ -53,10 +78,9 @@ export async function generateWhatsappMessage({ apiKey, baseUrl, model, data }) 
       },
       body: JSON.stringify({
         model: model || "gpt-5.6-luna",
-        temperature: 0.7,
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: buildUserPrompt(data) }
+          { role: "user", content: buildUserPrompt(data, draft) }
         ]
       })
     });
@@ -83,6 +107,9 @@ export async function generateWhatsappMessage({ apiKey, baseUrl, model, data }) 
 
   const json = await response.json();
   const raw = json?.choices?.[0]?.message?.content;
-  if (!raw) throw new Error("A IA não retornou nenhuma mensagem.");
-  return String(raw).trim().replace(/^```[a-z]*\n?/i, "").replace(/```$/, "").trim();
+  if (!raw) return draft;
+
+  const message = String(raw).trim().replace(/^```[a-z]*\n?/i, "").replace(/```$/, "").trim();
+  const enoughLines = message.split("\n").filter((line) => line.trim()).length >= 6;
+  return enoughLines ? message : draft;
 }

@@ -6,6 +6,17 @@
   <meta name="theme-color" content="#063d2c">
   <title>Contribuições</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("contribua-theme");
+        if (t !== "dark" && t !== "light") {
+          t = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        }
+        document.documentElement.dataset.theme = t;
+      } catch (e) {}
+    })();
+  </script>
   <link rel="stylesheet" href="/poster.css">
 </head>
 <body>
@@ -47,16 +58,18 @@
         <section class="card due-card">
           <div class="card-heading">
             <span class="icon-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="3"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></span>
-            <div><strong id="installment-label-card">1ª PARCELA</strong><span id="installment-due"></span></div>
+            <div class="due-meta">
+              <span class="due-label" id="installment-label-card">1ª PARCELA</span>
+              <strong class="due-date"><span class="due-prefix">Vence</span> <span id="installment-due">—</span></strong>
+            </div>
           </div>
           <div class="due-total" id="installment-total">R$ 0,00</div>
           <div class="muted centered" id="installment-caption"></div>
         </section>
 
         <section class="card per-person">
-          <div>Valor por pessoa</div>
+          <span>Valor por pessoa</span>
           <strong id="person-amount">R$ 0,00</strong>
-          <span>valor arredondado para todos</span>
         </section>
 
         <section class="card summary">
@@ -82,7 +95,6 @@
         </section>
       </aside>
     </section>
-    <div class="bottom-note">Marque cada participante como pago após confirmar o recebimento. Os totais são atualizados automaticamente.</div>
   </main>
 
   <div class="toolbar">

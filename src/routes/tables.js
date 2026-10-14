@@ -136,6 +136,47 @@ router.post("/", async (req, res, next) => {
   }
 });
 
+router.post("/:id/duplicate", async (req, res, next) => {
+  const client = await pool.connect();
+  try {
+    const source = await loadOwned(req.params.id, req.userId);
+    if (!source) return res.status(404).json({ error: "Tabela não encontrada." });
+
+    const requested = req.body?.title === undefined ? "" : String(req.body.title).trim();
+    const title = (requested || `${source.title} (cópia)`).slice(0, 80);
+    const slug = await uniqueSlug(title);
+
+    await client.query("BEGIN");
+    const { rows } = await client.query(
+      `INSERT INTO payment_tables
+         (user_id, slug, title, subtitle, installment_label, installment_due,
+          installment_cents, total_goal_cents, pix_name, pix_key, header_image, allow_public_edit)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+       RETURNING *`,
+      [
+        req.userId, slug, title, source.subtitle, source.installment_label, source.installment_due,
+        source.installment_cents, source.total_goal_cents, source.pix_name, source.pix_key,
+        source.header_image, source.allow_public_edit
+      ]
+    );
+    const table = rows[0];
+
+    await client.query(
+      `INSERT INTO participants (table_id, name, paid, note, position)
+       SELECT $1, name, false, '', position FROM participants WHERE table_id = $2 ORDER BY position, name`,
+      [table.id, source.id]
+    );
+
+    await client.query("COMMIT");
+    res.status(201).json({ table: { ...withStats(table), participants: await loadParticipants(table.id) } });
+  } catch (error) {
+    await client.query("ROLLBACK").catch(() => {});
+    next(error);
+  } finally {
+    client.release();
+  }
+});
+
 router.get("/:id", async (req, res, next) => {
   try {
     const table = await loadOwned(req.params.id, req.userId);

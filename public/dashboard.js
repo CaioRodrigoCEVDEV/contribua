@@ -95,6 +95,7 @@
         </div>
         <div class="actions">
           <button class="btn" type="button" data-action="open" data-slug="${App.escape(table.slug)}">Abrir link</button>
+          <button class="btn" type="button" data-action="duplicate" data-id="${table.id}" data-title="${App.escape(table.title)}">Duplicar</button>
           <button class="btn btn-dark" type="button" data-action="edit" data-id="${table.id}">Gerenciar</button>
         </div>`;
       cardsEl.appendChild(card);
@@ -111,7 +112,19 @@
       App.toast("Link copiado!");
     }
     if (action === "edit") openEdit(button.dataset.id);
+    if (action === "duplicate") duplicateTable(button.dataset.id, button.dataset.title);
   });
+
+  async function duplicateTable(id, title) {
+    if (!confirm(`Duplicar a tabela "${title}"?\n\nOs participantes serão copiados, mas o status de pagamento será reiniciado.`)) return;
+    try {
+      await App.api(`/api/tables/${id}/duplicate`, { method: "POST" });
+      App.toast("Tabela duplicada!");
+      loadTables();
+    } catch (error) {
+      App.toast(error.message);
+    }
+  }
 
   document.getElementById("new-table").addEventListener("click", openCreate);
   document.getElementById("new-table-2").addEventListener("click", openCreate);

@@ -7,6 +7,7 @@ import cookieParser from "cookie-parser";
 import authRoutes from "./routes/auth.js";
 import tableRoutes from "./routes/tables.js";
 import publicRoutes from "./routes/public.js";
+import settingsRoutes from "./routes/settings.js";
 import { pool } from "./db.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -28,6 +29,7 @@ app.get("/health", async (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/tables", tableRoutes);
 app.use("/api/public", publicRoutes);
+app.use("/api/settings", settingsRoutes);
 
 app.get("/dashboard", (req, res) => res.sendFile(join(publicDir, "dashboard.html")));
 app.get("/t/:slug", (req, res) => res.sendFile(join(publicDir, "poster.html")));

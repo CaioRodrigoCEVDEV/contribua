@@ -45,6 +45,70 @@
     });
   }
 
+  const settingsModal = document.getElementById("settings-modal");
+  const settingsForm = document.getElementById("settings-form");
+  const settingsKeyHint = document.getElementById("settings-key-hint");
+  const settingsRemoveKey = document.getElementById("settings-remove-key");
+
+  async function openSettings() {
+    try {
+      const { settings } = await App.api("/api/settings");
+      settingsForm.elements.model.value = settings.model || "";
+      settingsForm.elements.base_url.value = settings.base_url || "";
+      settingsForm.elements.api_key.value = "";
+      settingsForm.elements.api_key.placeholder = settings.has_key ? settings.masked_key : "sk-...";
+      settingsKeyHint.textContent = settings.has_key
+        ? "Chave configurada. Deixe em branco para manter."
+        : "Nenhuma chave configurada.";
+      settingsRemoveKey.hidden = !settings.has_key;
+      settingsModal.hidden = false;
+    } catch (error) {
+      App.toast(error.message);
+    }
+  }
+
+  function closeSettings() { settingsModal.hidden = true; }
+
+  document.getElementById("settings-button").addEventListener("click", openSettings);
+  document.getElementById("settings-cancel").addEventListener("click", closeSettings);
+  settingsModal.addEventListener("click", (event) => { if (event.target === settingsModal) closeSettings(); });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !settingsModal.hidden) closeSettings();
+  });
+
+  settingsForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const body = {
+      model: settingsForm.elements.model.value.trim(),
+      base_url: settingsForm.elements.base_url.value.trim()
+    };
+    const apiKey = settingsForm.elements.api_key.value.trim();
+    if (apiKey) body.api_key = apiKey;
+    try {
+      await App.api("/api/settings", { method: "PUT", body });
+      App.toast("Configurações salvas!");
+      closeSettings();
+    } catch (error) {
+      App.toast(error.message);
+    }
+  });
+
+  settingsRemoveKey.addEventListener("click", async () => {
+    const ok = await App.confirm("A chave de IA será removida da sua conta.", {
+      title: "Remover chave?",
+      confirmLabel: "Remover",
+      danger: true
+    });
+    if (!ok) return;
+    try {
+      await App.api("/api/settings", { method: "PUT", body: { api_key: "" } });
+      App.toast("Chave removida.");
+      closeSettings();
+    } catch (error) {
+      App.toast(error.message);
+    }
+  });
+
   App.currentUser().then((user) => {
     if (!user) {
       window.location.replace("/");
@@ -103,6 +167,7 @@
         </div>
         <div class="actions">
           <button class="btn" type="button" data-action="open" data-slug="${App.escape(table.slug)}">Abrir link</button>
+          <button class="btn" type="button" data-action="message" data-id="${table.id}">Mensagem</button>
           <button class="btn" type="button" data-action="duplicate" data-id="${table.id}" data-title="${App.escape(table.title)}">Duplicar</button>
           <button class="btn btn-dark" type="button" data-action="edit" data-id="${table.id}">Gerenciar</button>
         </div>`;
@@ -121,7 +186,48 @@
     }
     if (action === "edit") openEdit(button.dataset.id);
     if (action === "duplicate") duplicateTable(button.dataset.id, button.dataset.title);
+    if (action === "message") generateMessage(button.dataset.id);
   });
+
+  function buildModal(html) {
+    const overlay = document.createElement("div");
+    overlay.className = "modal-overlay";
+    overlay.innerHTML = `<div class="modal modal-wide" role="dialog" aria-modal="true">${html}</div>`;
+    overlay.addEventListener("click", (event) => { if (event.target === overlay) overlay.remove(); });
+    document.body.appendChild(overlay);
+    return overlay;
+  }
+
+  async function generateMessage(id) {
+    const overlay = buildModal(`
+      <h3 class="modal-title">Mensagem para o WhatsApp</h3>
+      <p class="modal-message">Gerando a mensagem com IA, aguarde...</p>`);
+    try {
+      const { message } = await App.api(`/api/tables/${id}/message`, { method: "POST" });
+      const modal = overlay.querySelector(".modal");
+      modal.innerHTML = `
+        <h3 class="modal-title">Mensagem para o WhatsApp</h3>
+        <textarea class="modal-textarea" id="generated-message"></textarea>
+        <div class="modal-actions">
+          <button class="btn" type="button" data-role="close">Fechar</button>
+          <button class="btn" type="button" data-role="copy">Copiar</button>
+          <button class="btn btn-primary" type="button" data-role="whatsapp">Abrir no WhatsApp</button>
+        </div>`;
+      const textarea = modal.querySelector("#generated-message");
+      textarea.value = message;
+      modal.querySelector('[data-role="close"]').addEventListener("click", () => overlay.remove());
+      modal.querySelector('[data-role="copy"]').addEventListener("click", async () => {
+        await navigator.clipboard.writeText(textarea.value).catch(() => {});
+        App.toast("Mensagem copiada!");
+      });
+      modal.querySelector('[data-role="whatsapp"]').addEventListener("click", () => {
+        window.open(`https://wa.me/?text=${encodeURIComponent(textarea.value)}`, "_blank");
+      });
+    } catch (error) {
+      overlay.remove();
+      App.toast(error.message);
+    }
+  }
 
   async function duplicateTable(id, title) {
     const ok = await App.confirm("Os participantes serão copiados, mas o status de pagamento será reiniciado.", {

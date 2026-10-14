@@ -187,10 +187,18 @@ h1, h2, h3 { margin: 0; }
   border-radius: 18px; box-shadow: 0 30px 80px var(--shadow);
   animation: modal-pop .16s ease-out;
 }
+.modal-overlay[hidden] { display: none; }
+.modal-wide { max-width: 480px; }
 .modal-title { font-size: 19px; margin-bottom: 8px; }
 .modal-message { margin: 0 0 20px; color: var(--muted); font-size: 15px; line-height: 1.5; white-space: pre-line; }
-.modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
+.modal-actions { display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
+.modal-actions-split { justify-content: space-between; }
+.modal-actions-right { display: flex; gap: 10px; }
+.modal-textarea { width: 100%; min-height: 240px; resize: vertical; border: 1px solid var(--input-border); border-radius: 12px; padding: 12px 14px; font: 15px/1.5 inherit; color: var(--ink); background: var(--input-bg); margin-bottom: 16px; }
+.modal-textarea:focus { outline: none; border-color: var(--green-dark); box-shadow: 0 0 0 3px #00c98933; }
 .btn-danger-solid { background: var(--red); color: #fff; }
+.icon-button { padding: 8px; line-height: 0; }
+.icon-button svg { width: 22px; height: 22px; }
 @keyframes modal-fade { from { opacity: 0; } }
 @keyframes modal-pop { from { opacity: 0; transform: translateY(6px) scale(.98); } }
 

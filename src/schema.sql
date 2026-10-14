@@ -5,11 +5,14 @@
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 CREATE TABLE IF NOT EXISTS users (
-  id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  name          text NOT NULL,
-  email         text NOT NULL UNIQUE,
-  password_hash text NOT NULL,
-  created_at    timestamptz NOT NULL DEFAULT now()
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name            text NOT NULL,
+  email           text NOT NULL UNIQUE,
+  password_hash   text NOT NULL,
+  openai_key      text NOT NULL DEFAULT '',
+  openai_model    text NOT NULL DEFAULT '',
+  openai_base_url text NOT NULL DEFAULT '',
+  created_at      timestamptz NOT NULL DEFAULT now()
 );
 
 CREATE TABLE IF NOT EXISTS payment_tables (
@@ -48,6 +51,11 @@ ALTER TABLE payment_tables ADD COLUMN IF NOT EXISTS updated_at timestamptz NOT N
 
 -- Imagem exibida no cabeçalho público (data URL). Bancos antigos ganham a coluna.
 ALTER TABLE payment_tables ADD COLUMN IF NOT EXISTS header_image text NOT NULL DEFAULT '';
+
+-- Configuração de IA por tenant (chave criptografada em repouso).
+ALTER TABLE users ADD COLUMN IF NOT EXISTS openai_key text NOT NULL DEFAULT '';
+ALTER TABLE users ADD COLUMN IF NOT EXISTS openai_model text NOT NULL DEFAULT '';
+ALTER TABLE users ADD COLUMN IF NOT EXISTS openai_base_url text NOT NULL DEFAULT '';
 
 -- Renomeia a coluna antiga (bancos já criados antes do rebrand para "Contribua").
 DO $$

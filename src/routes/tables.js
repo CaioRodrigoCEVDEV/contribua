@@ -2,6 +2,8 @@ import { Router } from "express";
 import { pool, query } from "../db.js";
 import { requireAuth } from "../auth.js";
 import { uniqueSlug } from "../slug.js";
+import { decryptSecret } from "../crypto.js";
+import { generateWhatsappMessage } from "../openai.js";
 
 const router = Router();
 router.use(requireAuth);
@@ -209,6 +211,57 @@ router.put("/:id", async (req, res, next) => {
       ]
     );
     res.json({ table: { ...withStats(rows[0]), participants: await loadParticipants(req.params.id) } });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post("/:id/message", async (req, res, next) => {
+  try {
+    const table = await loadOwned(req.params.id, req.userId);
+    if (!table) return res.status(404).json({ error: "Tabela não encontrada." });
+
+    const { rows: userRows } = await query(
+      "SELECT openai_key, openai_model, openai_base_url FROM users WHERE id = $1",
+      [req.userId]
+    );
+    const user = userRows[0] || {};
+    const apiKey = decryptSecret(user.openai_key);
+    if (!apiKey) {
+      return res.status(400).json({ error: "Configure sua API key em Configurações para gerar mensagens." });
+    }
+
+    const participants = await loadParticipants(table.id);
+    const total = participants.length;
+    const paid = participants.filter((p) => p.paid).length;
+
+    let message;
+    try {
+      message = await generateWhatsappMessage({
+        apiKey,
+        baseUrl: user.openai_base_url,
+        model: user.openai_model,
+        data: {
+          title: table.title,
+          subtitle: table.subtitle,
+          installmentLabel: table.installment_label,
+          installmentDue: table.installment_due,
+          installmentCents: table.installment_cents,
+          totalGoalCents: table.total_goal_cents,
+          pixName: table.pix_name,
+          pixKey: table.pix_key,
+          totalParticipants: total,
+          paidParticipants: paid,
+          pendingParticipants: total - paid,
+          receivedCents: paid * table.installment_cents,
+          pendingCents: (total - paid) * table.installment_cents
+        }
+      });
+    } catch (error) {
+      return res.status(502).json({ error: error.message || "Falha ao gerar a mensagem." });
+    }
+
+    res.json({ message });
   } catch (error) {
     next(error);
   }

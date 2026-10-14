@@ -29,6 +29,9 @@
     </div>
     <div class="actions">
       <span class="who" id="who"></span>
+      <button class="btn icon-button" id="settings-button" type="button" aria-label="Configurações" title="Configurações">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.2"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+      </button>
       <button class="btn theme-toggle" id="theme-toggle" type="button" aria-label="Alternar tema claro/escuro" title="Alternar tema">
         <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
         <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"></circle><path d="M12 2v2.5M12 19.5V22M4.2 4.2 6 6M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8 6 18M18 6l1.8-1.8"></path></svg>
@@ -143,6 +146,38 @@
           <button class="btn btn-danger" id="delete-table" type="button" hidden>Excluir tabela</button>
           <button class="btn" id="cancel" type="button">Fechar</button>
           <button class="btn btn-primary" type="submit" id="save-table">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="settings-modal" hidden>
+    <div class="modal modal-wide" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+      <h3 class="modal-title" id="settings-title">Configurações de IA</h3>
+      <p class="modal-message" style="margin-bottom:18px">A chave fica salva apenas na sua conta e é usada para gerar as mensagens do WhatsApp.</p>
+      <form id="settings-form">
+        <label class="field"><span>API key</span>
+          <input type="password" name="api_key" autocomplete="off" placeholder="sk-...">
+          <small id="settings-key-hint">Nenhuma chave configurada.</small>
+        </label>
+        <label class="field"><span>Modelo</span>
+          <input type="text" name="model" list="model-options" placeholder="GPT-6.5-Luna">
+          <datalist id="model-options">
+            <option value="GPT-6.5-Luna"></option>
+            <option value="gpt-4o-mini"></option>
+            <option value="gpt-4o"></option>
+          </datalist>
+        </label>
+        <label class="field"><span>Base URL (opcional)</span>
+          <input type="text" name="base_url" placeholder="https://api.openai.com/v1">
+          <small>Use para endpoints compatíveis com OpenAI (proxy, Azure, modelo próprio).</small>
+        </label>
+        <div class="modal-actions modal-actions-split">
+          <button class="btn btn-danger" type="button" id="settings-remove-key" hidden>Remover chave</button>
+          <div class="modal-actions-right">
+            <button class="btn" type="button" id="settings-cancel">Fechar</button>
+            <button class="btn btn-primary" type="submit">Salvar</button>
+          </div>
         </div>
       </form>
     </div>

@@ -20,7 +20,7 @@ body {
   transform: translate(-50%, -50%) scale(var(--poster-scale));
   transform-origin: center center;
   overflow: hidden; border: 2px solid #d8e2df;
-  border-radius: 22px; background: #f8faf9; box-shadow: 0 14px 40px #09291b1c;
+  background: #f8faf9; box-shadow: 0 14px 40px #09291b1c;
 }
 .hero {
   min-height: 185px; position: relative; display: flex; align-items: center;

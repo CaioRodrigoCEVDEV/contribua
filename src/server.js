@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import express from "express";
@@ -35,8 +36,66 @@ app.use("/api/tables", tableRoutes);
 app.use("/api/public", publicRoutes);
 app.use("/api/settings", settingsRoutes);
 
+function escapeHtml(value) {
+  return String(value == null ? "" : value)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
 app.get("/dashboard", (req, res) => res.sendFile(join(publicDir, "dashboard.html")));
-app.get("/t/:slug", (req, res) => res.sendFile(join(publicDir, "poster.html")));
+
+app.get("/t/:slug/og-image", async (req, res, next) => {
+  try {
+    const { rows } = await pool.query("SELECT header_image FROM payment_tables WHERE slug = $1", [req.params.slug]);
+    const match = /^data:(image\/[a-z0-9.+-]+);base64,(.+)$/i.exec(rows[0]?.header_image || "");
+    if (match) {
+      res.set("Cache-Control", "public, max-age=3600");
+      return res.type(match[1]).send(Buffer.from(match[2], "base64"));
+    }
+    res.set("Cache-Control", "public, max-age=86400");
+    res.sendFile(join(publicDir, "og-default.png"));
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get("/t/:slug", async (req, res, next) => {
+  try {
+    const html = await readFile(join(publicDir, "poster.html"), "utf8");
+    const { rows } = await pool.query(
+      "SELECT title, subtitle FROM payment_tables WHERE slug = $1",
+      [req.params.slug]
+    );
+    const table = rows[0];
+    if (!table) return res.type("html").send(html);
+
+    const base = `${req.protocol}://${req.get("host")}`;
+    const slug = encodeURIComponent(req.params.slug);
+    const url = `${base}/t/${slug}`;
+    const image = `${base}/t/${slug}/og-image`;
+    const title = [table.title, table.subtitle].filter(Boolean).join(" — ") || "Contribua";
+    const description = "Acompanhe as contribuições e veja quem já pagou.";
+    const tags = [
+      `<meta property="og:type" content="website">`,
+      `<meta property="og:title" content="${escapeHtml(title)}">`,
+      `<meta property="og:description" content="${escapeHtml(description)}">`,
+      `<meta property="og:url" content="${url}">`,
+      `<meta property="og:image" content="${image}">`,
+      `<meta property="og:image:alt" content="${escapeHtml(title)}">`,
+      `<meta name="twitter:card" content="summary_large_image">`,
+      `<meta name="twitter:title" content="${escapeHtml(title)}">`,
+      `<meta name="twitter:description" content="${escapeHtml(description)}">`,
+      `<meta name="twitter:image" content="${image}">`
+    ].join("\n    ");
+
+    const out = html
+      .replace(/<title>.*?<\/title>/i, `<title>${escapeHtml(title)}</title>`)
+      .replace("</head>", `    ${tags}\n  </head>`);
+    res.type("html").send(out);
+  } catch (error) {
+    next(error);
+  }
+});
 
 app.use(express.static(publicDir));
 

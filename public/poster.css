@@ -118,6 +118,8 @@ td:last-child { text-align:center; color:#6d747b; }
   }
   .hero { min-height: auto; padding: 18px 16px; }
   .dashboard { grid-template-columns: 1fr; padding: 12px; gap: 12px; }
+  .sidebar { order: 1; }
+  .table-wrap { order: 2; }
   .pix-card { margin-top: 0; }
   .toolbar { top: auto; bottom: 14px; right: 14px; }
 

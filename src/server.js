@@ -10,6 +10,9 @@ import publicRoutes from "./routes/public.js";
 import settingsRoutes from "./routes/settings.js";
 import { pool } from "./db.js";
 
+process.on("unhandledRejection", (error) => console.error("Unhandled rejection:", error));
+process.on("uncaughtException", (error) => console.error("Uncaught exception:", error));
+
 const here = dirname(fileURLToPath(import.meta.url));
 const publicDir = join(here, "..", "public");
 

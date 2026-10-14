@@ -224,8 +224,15 @@
         window.open(`https://wa.me/?text=${encodeURIComponent(textarea.value)}`, "_blank");
       });
     } catch (error) {
-      overlay.remove();
-      App.toast(error.message);
+      const modal = overlay.querySelector(".modal");
+      modal.innerHTML = `
+        <h3 class="modal-title">Não foi possível gerar</h3>
+        <p class="modal-message"></p>
+        <div class="modal-actions">
+          <button class="btn btn-primary" type="button" data-role="close">Fechar</button>
+        </div>`;
+      modal.querySelector(".modal-message").textContent = error.message;
+      modal.querySelector('[data-role="close"]').addEventListener("click", () => overlay.remove());
     }
   }
 

@@ -39,27 +39,46 @@ export async function generateWhatsappMessage({ apiKey, baseUrl, model, data }) 
   if (!apiKey) throw new Error("API key não configurada.");
 
   const url = `${(baseUrl || DEFAULT_BASE_URL).replace(/\/+$/, "")}/chat/completions`;
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`
-    },
-    body: JSON.stringify({
-      model: model || "gpt-4o-mini",
-      temperature: 0.7,
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        { role: "user", content: buildUserPrompt(data) }
-      ]
-    })
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 45000);
+
+  let response;
+  try {
+    response = await fetch(url, {
+      method: "POST",
+      signal: controller.signal,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: model || "gpt-4o-mini",
+        temperature: 0.7,
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          { role: "user", content: buildUserPrompt(data) }
+        ]
+      })
+    });
+  } catch (error) {
+    const reason = error?.name === "AbortError"
+      ? "O provedor de IA demorou demais para responder."
+      : "Não foi possível contatar o provedor de IA. Verifique a API key e a Base URL em Configurações.";
+    throw new Error(reason);
+  } finally {
+    clearTimeout(timer);
+  }
 
   if (!response.ok) {
-    const detail = await response.text().catch(() => "");
-    const status = response.status;
-    const hint = status === 401 ? "Verifique a API key em Configurações." : detail.slice(0, 200);
-    throw new Error(`Falha ao gerar a mensagem (${status}). ${hint}`);
+    const bodyText = await response.text().catch(() => "");
+    let detail = bodyText.slice(0, 300);
+    try {
+      const parsed = JSON.parse(bodyText);
+      detail = parsed?.error?.message || detail;
+    } catch { /* mantém o texto bruto */ }
+    if (response.status === 401) detail = "API key inválida. Verifique em Configurações.";
+    console.error(`[openai] ${response.status}: ${detail}`);
+    throw new Error(`Falha ao gerar a mensagem (${response.status}). ${detail}`);
   }
 
   const json = await response.json();

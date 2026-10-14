@@ -52,7 +52,7 @@ export async function generateWhatsappMessage({ apiKey, baseUrl, model, data }) 
         Authorization: `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: model || "gpt-4o-mini",
+        model: model || "gpt-5.6-luna",
         temperature: 0.7,
         messages: [
           { role: "system", content: SYSTEM_PROMPT },

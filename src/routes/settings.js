@@ -24,7 +24,7 @@ router.get("/", async (req, res, next) => {
       settings: {
         has_key: Boolean(key),
         masked_key: mask(key),
-        model: user.openai_model || "gpt-4o-mini",
+        model: user.openai_model || "gpt-5.6-luna",
         base_url: user.openai_base_url || ""
       }
     });

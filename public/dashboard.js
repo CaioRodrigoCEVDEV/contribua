@@ -220,8 +220,19 @@
         await navigator.clipboard.writeText(textarea.value).catch(() => {});
         App.toast("Mensagem copiada!");
       });
-      modal.querySelector('[data-role="whatsapp"]').addEventListener("click", () => {
-        window.open(`https://wa.me/?text=${encodeURIComponent(textarea.value)}`, "_blank");
+      modal.querySelector('[data-role="whatsapp"]').addEventListener("click", async () => {
+        const text = textarea.value;
+        const isMobile = /android|iphone|ipad|ipod/i.test(navigator.userAgent);
+        if (isMobile && navigator.share) {
+          try {
+            await navigator.share({ text });
+            return;
+          } catch (error) {
+            if (error && error.name === "AbortError") return;
+          }
+        }
+        const base = isMobile ? "https://wa.me/" : "https://web.whatsapp.com/send";
+        window.open(`${base}?text=${encodeURIComponent(text)}`, "_blank", "noopener");
       });
     } catch (error) {
       const modal = overlay.querySelector(".modal");

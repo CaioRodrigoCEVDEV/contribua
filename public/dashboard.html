@@ -61,6 +61,8 @@
       <p class="editor-sub" id="editor-sub">Defina os dados e os participantes.</p>
 
       <form id="editor-form">
+        <div class="editor-grid">
+        <div class="editor-fields">
         <div class="row">
           <label class="field"><span>Título</span>
             <input type="text" name="title" required placeholder="Ex.: Vaquinha do aniversário">
@@ -118,8 +120,9 @@
           <span style="margin:0">Permitir que o link público marque pagamentos</span>
         </label>
 
-        <div class="divider"></div>
+        </div>
 
+        <div class="editor-participants">
         <div id="block-bulk">
           <div class="section-title">Participantes (um por linha)</div>
           <label class="field bulk"><textarea name="participants_bulk" placeholder="Caio&#10;Jasson Santos&#10;Leda"></textarea></label>
@@ -132,6 +135,8 @@
             <input type="text" id="new-participant" placeholder="Nome do participante">
             <button class="btn" id="add-participant" type="button">Adicionar</button>
           </div>
+        </div>
+        </div>
         </div>
 
         <div class="editor-actions">

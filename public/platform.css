@@ -151,11 +151,14 @@ h1, h2, h3 { margin: 0; }
 /* ---------- Editor ---------- */
 .editor { position: fixed; inset: 0; background: #09291b66; display: none; align-items: flex-start; justify-content: center; padding: 28px 16px; overflow: auto; z-index: 30; }
 .editor.open { display: flex; }
-.editor-panel { width: 100%; max-width: 760px; background: var(--surface); border-radius: 20px; padding: 26px; box-shadow: 0 30px 80px var(--shadow); }
+.editor-panel { width: 100%; max-width: 1080px; background: var(--surface); border-radius: 20px; padding: 26px; box-shadow: 0 30px 80px var(--shadow); }
 .editor-panel h2 { font-size: 22px; margin-bottom: 4px; }
 .editor-sub { color: var(--muted); font-size: 14px; margin-bottom: 18px; }
-.editor-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; flex-wrap: wrap; }
-.participants-list { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; margin-top: 6px; }
+.editor-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 14px 28px; align-items: start; }
+.editor-fields { min-width: 0; }
+.editor-participants { min-width: 0; }
+.editor-actions { position: sticky; bottom: 0; display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px; padding-top: 16px; flex-wrap: wrap; background: var(--surface); border-top: 1px solid var(--line); }
+.participants-list { border: 1px solid var(--line); border-radius: 12px; overflow: auto; max-height: min(52vh, 460px); margin-top: 6px; }
 .participant-row { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-top: 1px solid var(--line); }
 .participant-row:first-child { border-top: 0; }
 .participant-row .idx { width: 26px; text-align: center; color: var(--muted); font-size: 14px; }
@@ -165,7 +168,7 @@ h1, h2, h3 { margin: 0; }
 .add-row { display: flex; gap: 10px; margin-top: 12px; }
 .add-row input { flex: 1; border: 1px solid var(--input-border); border-radius: 11px; padding: 11px 13px; font: 15px inherit; color: var(--ink); background: var(--input-bg); }
 .add-row input:focus { outline: none; border-color: var(--green-dark); box-shadow: 0 0 0 3px #00c98933; }
-.bulk textarea { min-height: 96px; resize: vertical; }
+.bulk textarea { min-height: 240px; resize: vertical; }
 
 .divider { height: 1px; background: var(--line); margin: 22px 0; }
 .section-title { font-size: 13px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
@@ -200,4 +203,7 @@ h1, h2, h3 { margin: 0; }
   .auth-page { grid-template-columns: 1fr; }
   .auth-hero { display: none; }
   .row { grid-template-columns: 1fr; }
+  .editor-grid { grid-template-columns: 1fr; gap: 14px; }
+  .participants-list { max-height: none; }
+  .bulk textarea { min-height: 140px; }
 }

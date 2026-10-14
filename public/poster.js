@@ -212,7 +212,11 @@
     }
     const margin = 24;
     const base = 1400;
-    const scale = Math.min((window.innerWidth - margin) / base, 1);
+    const scale = Math.min(
+      (window.innerWidth - margin) / base,
+      (window.innerHeight - margin) / poster.offsetHeight,
+      1
+    );
     document.documentElement.style.setProperty("--poster-scale", String(scale));
     stage.style.height = `${poster.offsetHeight * scale}px`;
   }

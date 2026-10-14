@@ -136,6 +136,7 @@ h1, h2, h3 { margin: 0; }
 
 .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
 .table-card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px; box-shadow: 0 10px 30px var(--shadow); display: flex; flex-direction: column; gap: 14px; }
+.card-banner { width: 100%; aspect-ratio: 16 / 6; object-fit: cover; display: block; border-radius: 12px; background: var(--surface-3); }
 .table-card h3 { font-size: 19px; }
 .table-card .sub { color: var(--muted); font-size: 14px; }
 .stats { display: flex; gap: 8px; flex-wrap: wrap; }

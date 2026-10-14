@@ -79,7 +79,11 @@
       const pending = table.total_participants - table.paid_participants;
       const card = document.createElement("article");
       card.className = "table-card";
+      const banner = table.header_image
+        ? `<img class="card-banner" src="${table.header_image}" alt="" loading="lazy">`
+        : "";
       card.innerHTML = `
+        ${banner}
         <div>
           <h3>${App.escape(table.title)}</h3>
           <div class="sub">${App.escape(table.subtitle || table.installment_label)}</div>

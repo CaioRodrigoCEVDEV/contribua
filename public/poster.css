@@ -16,7 +16,7 @@ body {
 [data-theme="dark"] .poster { border-color: #1d2924; box-shadow: 0 14px 40px #00000066; }
 .poster {
   position: absolute; top: 50%; left: 50%;
-  width: 1500px; max-width: none;
+  width: 1400px; max-width: none;
   transform: translate(-50%, -50%) scale(var(--poster-scale));
   transform-origin: center center;
   overflow: hidden; border: 2px solid #d8e2df;
@@ -36,7 +36,7 @@ body {
 h1 { margin:0; font-size:clamp(30px,4.3vw,58px); line-height:1.05; font-weight:900; letter-spacing:-1.5px; }
 .season { display:flex; align-items:center; gap:14px; margin-top:12px; font-size:clamp(16px,2vw,26px); letter-spacing:5px; }
 .season i { display:inline-block; width:120px; height:4px; background:var(--green); border-radius:4px; }
-.dashboard { display:grid; grid-template-columns:minmax(0, 1fr) 345px; gap:18px; padding:18px; }
+.dashboard { display:grid; grid-template-columns:minmax(0, 1fr) 375px; gap:18px; padding:18px; }
 .table-wrap { min-width:0; overflow-x:auto; align-self:start; border:1px solid #e4ebea; border-radius:14px; background:white; }
 table { border-collapse:collapse; width:100%; min-width:650px; font-size:16px; }
 thead { background:#dff5e8; }
@@ -120,6 +120,31 @@ td:last-child { text-align:center; color:#6d747b; }
   .dashboard { grid-template-columns: 1fr; padding: 12px; gap: 12px; }
   .pix-card { margin-top: 0; }
   .toolbar { top: auto; bottom: 14px; right: 14px; }
+
+  .table-wrap { border: 0; border-radius: 0; background: transparent; overflow: visible; }
+  table { min-width: 0; width: 100%; border-collapse: separate; }
+  thead { display: none; }
+  tbody { display: block; }
+  tbody tr {
+    display: block; margin-bottom: 10px; padding: 12px 14px;
+    border: 1px solid #e4ebea; border-radius: 14px; background: #fff;
+  }
+  tbody tr:nth-child(even), tbody tr:hover { background: #fff; }
+  tbody td {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    height: auto; padding: 5px 0; border: 0; text-align: right;
+  }
+  tbody td::before {
+    content: attr(data-label); color: #5e6875; font-weight: 700;
+    font-size: 13px; text-align: left;
+  }
+  tbody td:nth-child(1) { display: none; }
+  tbody td:nth-child(2) {
+    justify-content: flex-start; font-size: 18px; font-weight: 700;
+    padding: 0 0 8px; margin-bottom: 4px; border-bottom: 1px solid var(--line);
+  }
+  tbody td:nth-child(2)::before { content: none; }
+  tbody td:nth-child(4) { min-width: 0; }
 }
 
 @media print {

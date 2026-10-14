@@ -40,16 +40,15 @@
     participants.forEach((p, index) => {
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td>${index + 1}</td>
-        <td class="participant-name"></td>
-        <td>${App.money(cents)}</td>
-        <td>
+        <td data-label="#">${index + 1}</td>
+        <td class="participant-name" data-label="Participante"></td>
+        <td data-label="${App.escape(table.installment_label || "Parcela")}">${App.money(cents)}</td>
+        <td data-label="Status">
           <button type="button" class="status-toggle ${p.paid ? "paid" : "pending"}"
             aria-pressed="${p.paid}" ${table.allow_public_edit ? "" : "disabled"}>
             ${p.paid ? "Pago" : "Não pago"}
           </button>
-        </td>
-        <td>${p.note ? App.escape(p.note) : "—"}</td>`;
+        </td>`;
       tr.querySelector(".participant-name").textContent = p.name;
       tr.querySelector("button").addEventListener("click", () => toggle(p.id));
       tbody.appendChild(tr);
@@ -126,7 +125,7 @@
         backgroundColor: null,
         scale: 2,
         useCORS: true,
-        windowWidth: 1500,
+        windowWidth: 1400,
         windowHeight: Math.max(poster.scrollHeight, 1200)
       });
       const blob = await new Promise((r) => canvas.toBlob(r, "image/png"));

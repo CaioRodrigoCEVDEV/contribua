@@ -92,6 +92,7 @@ function withStats(row) {
     location_address: row.location_address,
     location_url: row.location_url,
     allow_public_edit: row.allow_public_edit,
+    visits: Number(row.visits ?? 0),
     total_participants: Number(row.total_participants ?? 0),
     paid_participants: Number(row.paid_participants ?? 0),
     created_at: row.created_at,

@@ -61,6 +61,9 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS openai_base_url text NOT NULL DEFAULT
 ALTER TABLE payment_tables ADD COLUMN IF NOT EXISTS location_address text NOT NULL DEFAULT '';
 ALTER TABLE payment_tables ADD COLUMN IF NOT EXISTS location_url text NOT NULL DEFAULT '';
 
+-- Contador de visitas da página pública.
+ALTER TABLE payment_tables ADD COLUMN IF NOT EXISTS visits integer NOT NULL DEFAULT 0;
+
 CREATE TABLE IF NOT EXISTS table_images (
   id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   table_id   uuid NOT NULL REFERENCES payment_tables(id) ON DELETE CASCADE,

@@ -115,11 +115,20 @@ td:last-child { text-align:center; color:#6d747b; }
 .carousel-dots { position: absolute; bottom: 12px; left: 0; right: 0; display: flex; gap: 8px; justify-content: center; }
 .carousel-dots button { width: 9px; height: 9px; padding: 0; border: 0; border-radius: 50%; background: #ffffff80; cursor: pointer; }
 .carousel-dots button.active { background: #fff; }
-.place-address { display: inline-flex; align-items: center; gap: 8px; margin-top: 16px; color: var(--ink); font-size: 16px; font-weight: 600; text-decoration: none; }
-.place-address svg { width: 18px; height: 18px; flex-shrink: 0; color: #0a9a5c; }
-.place-address:hover { text-decoration: underline; }
+.place-info { display: flex; align-items: center; gap: 14px; margin-top: 16px; padding: 16px 18px; background: #fff; border: 1px solid #e2e8e8; border-radius: 16px; }
+.place-pin { display: grid; place-items: center; width: 48px; height: 48px; flex-shrink: 0; border-radius: 12px; background: #0a9a5c; color: #fff; }
+.place-pin svg { width: 26px; height: 26px; display: block; }
+.place-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.place-text strong { font-size: 12px; letter-spacing: .4px; text-transform: uppercase; color: #0a9a5c; }
+.place-text span { font-size: 16px; font-weight: 600; color: #101820; }
+.place-route { flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; padding: 11px 16px; border-radius: 12px; background: #07844e; color: #fff; font-size: 15px; font-weight: 700; text-decoration: none; transition: filter .12s; }
+.place-route:hover { filter: brightness(1.08); }
+.place-route[hidden] { display: none; }
 .place-map { margin-top: 14px; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8e8; height: 340px; background: #e7edeb; }
 .place-map iframe { width: 100%; height: 100%; border: 0; display: block; }
+[data-theme="dark"] .place-info { background: #16201c; border-color: #2a3a33; }
+[data-theme="dark"] .place-text span { color: #e8f0ec; }
+[data-theme="dark"] .place-map { border-color: #2a3a33; background: #16201c; }
 
 .lightbox { position: fixed; inset: 0; z-index: 100; background: #000000e6; display: flex; align-items: center; justify-content: center; }
 .lightbox[hidden] { display: none; }
@@ -162,6 +171,8 @@ td:last-child { text-align:center; color:#6d747b; }
   .place { padding: 0 12px 84px; }
   .place-title { font-size: 19px; }
   .carousel { aspect-ratio: 4 / 3; }
+  .place-info { flex-wrap: wrap; padding: 14px; }
+  .place-route { width: 100%; }
   .place-map { height: 240px; }
   .lightbox-nav { width: 44px; height: 44px; font-size: 26px; }
   .lightbox-nav.prev { left: 8px; }

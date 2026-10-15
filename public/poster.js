@@ -9,12 +9,12 @@
   const carousel = document.getElementById("carousel");
   const carouselTrack = document.getElementById("carousel-track");
   const carouselDots = document.getElementById("carousel-dots");
-  const placeAddress = document.getElementById("place-address");
+  const placeInfo = document.getElementById("place-info");
+  const placeAddressText = document.getElementById("place-address-text");
+  const placeRoute = document.getElementById("place-route");
   const placeMap = document.getElementById("place-map");
   const lightbox = document.getElementById("lightbox");
   const lightboxImg = document.getElementById("lightbox-img");
-
-  const PIN_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s7-6.3 7-12a7 7 0 1 0-14 0c0 5.7 7 12 7 12z"></path><circle cx="12" cy="10" r="2.7"></circle></svg>';
 
   let table = null;
   let images = [];
@@ -104,15 +104,19 @@
       carousel.hidden = true;
     }
 
-    const href = link || embed;
-    if (address || href) {
-      placeAddress.hidden = false;
-      placeAddress.innerHTML = `${PIN_SVG}<span></span>`;
-      placeAddress.querySelector("span").textContent = address || "Ver no Google Maps";
-      if (href) placeAddress.href = href;
-      else placeAddress.removeAttribute("href");
+    if (address || link) {
+      placeInfo.hidden = false;
+      placeAddressText.textContent = address || "Ver localização no mapa";
+      let route = link;
+      if (!route && address) route = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address)}`;
+      if (route) {
+        placeRoute.href = route;
+        placeRoute.hidden = false;
+      } else {
+        placeRoute.hidden = true;
+      }
     } else {
-      placeAddress.hidden = true;
+      placeInfo.hidden = true;
     }
 
     if (embed) {

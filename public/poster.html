@@ -105,21 +105,27 @@
   <section class="place" id="place" hidden>
     <div class="place-inner">
       <h2 class="place-title" id="place-title">O local</h2>
-      <div class="carousel" id="carousel" hidden>
-        <div class="carousel-track" id="carousel-track"></div>
-        <button class="carousel-nav prev" id="carousel-prev" type="button" aria-label="Anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"></path></svg></button>
-        <button class="carousel-nav next" id="carousel-next" type="button" aria-label="Próxima"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"></path></svg></button>
-        <div class="carousel-dots" id="carousel-dots"></div>
-      </div>
-      <div class="place-info" id="place-info" hidden>
-        <span class="place-pin" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s7-6.3 7-12a7 7 0 1 0-14 0c0 5.7 7 12 7 12z"></path><circle cx="12" cy="10" r="2.7"></circle></svg></span>
-        <div class="place-text">
-          <strong>Endereço</strong>
-          <span id="place-address-text">—</span>
+      <div class="place-grid">
+        <div class="place-media">
+          <div class="carousel" id="carousel" hidden>
+            <div class="carousel-track" id="carousel-track"></div>
+            <button class="carousel-nav prev" id="carousel-prev" type="button" aria-label="Anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"></path></svg></button>
+            <button class="carousel-nav next" id="carousel-next" type="button" aria-label="Próxima"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"></path></svg></button>
+          </div>
+          <div class="carousel-thumbs" id="carousel-thumbs" hidden></div>
         </div>
-        <a class="place-route" id="place-route" href="#" target="_blank" rel="noopener">Como chegar</a>
+        <div class="place-side">
+          <div class="place-info" id="place-info" hidden>
+            <span class="place-pin" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s7-6.3 7-12a7 7 0 1 0-14 0c0 5.7 7 12 7 12z"></path><circle cx="12" cy="10" r="2.7"></circle></svg></span>
+            <div class="place-text">
+              <strong>Endereço</strong>
+              <span id="place-address-text">—</span>
+            </div>
+            <a class="place-route" id="place-route" href="#" target="_blank" rel="noopener">Como chegar</a>
+          </div>
+          <div class="place-map" id="place-map" hidden></div>
+        </div>
       </div>
-      <div class="place-map" id="place-map" hidden></div>
     </div>
   </section>
 

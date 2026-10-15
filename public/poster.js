@@ -8,7 +8,7 @@
   const placeSection = document.getElementById("place");
   const carousel = document.getElementById("carousel");
   const carouselTrack = document.getElementById("carousel-track");
-  const carouselDots = document.getElementById("carousel-dots");
+  const carouselThumbs = document.getElementById("carousel-thumbs");
   const placeInfo = document.getElementById("place-info");
   const placeAddressText = document.getElementById("place-address-text");
   const placeRoute = document.getElementById("place-route");
@@ -100,8 +100,10 @@
     if (images.length) {
       renderCarousel();
       carousel.hidden = false;
+      carouselThumbs.hidden = images.length < 2;
     } else {
       carousel.hidden = true;
+      carouselThumbs.hidden = true;
     }
 
     if (address || link) {
@@ -129,7 +131,7 @@
 
   function renderCarousel() {
     carouselTrack.innerHTML = "";
-    carouselDots.innerHTML = "";
+    carouselThumbs.innerHTML = "";
     images.forEach((image, index) => {
       const slide = document.createElement("img");
       slide.className = `slide${index === 0 ? " active" : ""}`;
@@ -139,12 +141,13 @@
       slide.addEventListener("click", () => openLightbox(index));
       carouselTrack.appendChild(slide);
 
-      const dot = document.createElement("button");
-      dot.type = "button";
-      dot.className = index === 0 ? "active" : "";
-      dot.setAttribute("aria-label", `Foto ${index + 1}`);
-      dot.addEventListener("click", () => { goTo(index); startAuto(); });
-      carouselDots.appendChild(dot);
+      const thumb = document.createElement("button");
+      thumb.type = "button";
+      thumb.className = index === 0 ? "active" : "";
+      thumb.setAttribute("aria-label", `Foto ${index + 1}`);
+      thumb.innerHTML = `<img src="${image.url}" alt="" loading="lazy">`;
+      thumb.addEventListener("click", () => { goTo(index); startAuto(); });
+      carouselThumbs.appendChild(thumb);
     });
     slideIndex = 0;
     if (images.length > 1) startAuto();
@@ -154,7 +157,7 @@
     if (!images.length) return;
     slideIndex = (index + images.length) % images.length;
     carouselTrack.querySelectorAll(".slide").forEach((el, i) => el.classList.toggle("active", i === slideIndex));
-    carouselDots.querySelectorAll("button").forEach((el, i) => el.classList.toggle("active", i === slideIndex));
+    carouselThumbs.querySelectorAll("button").forEach((el, i) => el.classList.toggle("active", i === slideIndex));
   }
 
   function startAuto() {

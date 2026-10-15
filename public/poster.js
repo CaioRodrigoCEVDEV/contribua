@@ -70,14 +70,16 @@
     });
   }
 
-  function mapEmbedUrl(link) {
-    if (!link) return "";
-    const coord = link.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) || link.match(/[?&]ll=(-?\d+\.\d+),(-?\d+\.\d+)/);
-    if (coord) return `https://www.google.com/maps?q=${coord[1]},${coord[2]}&z=15&output=embed`;
-    const query = link.match(/[?&]q=([^&]+)/);
-    if (query) return `https://www.google.com/maps?q=${query[1]}&output=embed`;
-    const place = link.match(/\/maps\/place\/([^/@?]+)/);
-    if (place) return `https://www.google.com/maps?q=${place[1]}&output=embed`;
+  function mapEmbedUrl(link, address) {
+    if (link) {
+      const coord = link.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) || link.match(/[?&]ll=(-?\d+\.\d+),(-?\d+\.\d+)/);
+      if (coord) return `https://www.google.com/maps?q=${coord[1]},${coord[2]}&z=15&output=embed`;
+      const query = link.match(/[?&]q=([^&]+)/);
+      if (query) return `https://www.google.com/maps?q=${query[1]}&output=embed`;
+      const place = link.match(/\/maps\/place\/([^/@?]+)/);
+      if (place) return `https://www.google.com/maps?q=${place[1]}&output=embed`;
+    }
+    if (address) return `https://www.google.com/maps?q=${encodeURIComponent(address)}&output=embed`;
     return "";
   }
 
@@ -85,7 +87,7 @@
     images = Array.isArray(table.images) ? table.images : [];
     const address = table.location_address || "";
     const link = table.location_url || "";
-    const embed = mapEmbedUrl(link);
+    const embed = mapEmbedUrl(link, address);
 
     if (!images.length && !address && !link) {
       placeSection.hidden = true;

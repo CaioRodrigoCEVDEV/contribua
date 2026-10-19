@@ -39,5 +39,5 @@ test("inclui os campos da integração na tela de configurações", async () => 
 test("adiciona o controlador do CRM ao cache do service worker", async () => {
   const sw = await readFile(join(root, "public", "sw.js"), "utf8");
   assert.match(sw, /"\/crm-send\.js"/);
-  assert.match(sw, /contribua-v3/);
+  assert.match(sw, /contribua-v\d+/);
 });

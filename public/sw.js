@@ -1,4 +1,4 @@
-const CACHE = "contribua-v3";
+const CACHE = "contribua-v4";
 const ASSETS = [
   "/",
   "/dashboard",

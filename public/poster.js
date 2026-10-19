@@ -49,7 +49,18 @@
     setText("pending-total", App.money(summary.pending_cents));
     setText("pix-name", table.pix_name || "—");
     setText("pix-key", table.pix_key || "—");
-    setText("installment-caption", totalCents > 0 ? `${Math.round((summary.received_cents / totalCents) * 100)}% do valor total pago` : "");
+
+    const progress = totalCents > 0
+      ? Math.min(100, Math.max(0, Math.round((summary.received_cents / totalCents) * 100)))
+      : 0;
+    const progressFill = document.getElementById("progress-fill");
+    const progressTrack = document.getElementById("progress-track");
+    const progressWrap = document.getElementById("progress-wrap");
+    if (progressFill) progressFill.style.width = `${progress}%`;
+    if (progressTrack) progressTrack.setAttribute("aria-valuenow", String(progress));
+    if (progressWrap) progressWrap.classList.toggle("is-complete", progress >= 100);
+    setText("progress-percent", `${progress}%`);
+    setText("progress-caption", `${App.money(summary.received_cents)} de ${App.money(totalCents)}`);
 
     tbody.innerHTML = "";
     participants.forEach((p, index) => {

@@ -68,7 +68,16 @@
             </div>
           </div>
           <div class="due-total" id="installment-total">R$ 0,00</div>
-          <div class="muted centered" id="installment-caption"></div>
+          <div class="progress-wrap" id="progress-wrap">
+            <div class="progress-meta">
+              <span>Progresso</span>
+              <strong id="progress-percent">0%</strong>
+            </div>
+            <div class="progress-track" id="progress-track" role="progressbar" aria-label="Progresso do valor total pago" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+              <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <div class="progress-caption" id="progress-caption">R$ 0,00 de R$ 0,00</div>
+          </div>
         </section>
 
         <section class="card per-person">

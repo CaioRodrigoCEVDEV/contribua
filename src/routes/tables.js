@@ -274,6 +274,7 @@ router.post("/:id/message", async (req, res, next) => {
     const participants = await loadParticipants(table.id);
     const total = participants.length;
     const paid = participants.filter((p) => p.paid).length;
+    const complete = total > 0 && paid === total;
 
     const requestedOrigin = String(req.body?.origin || "").trim().replace(/\/+$/, "");
     const base = /^https?:\/\//i.test(requestedOrigin)
@@ -303,13 +304,14 @@ router.post("/:id/message", async (req, res, next) => {
           receivedCents: paid * table.installment_cents,
           pendingCents: (total - paid) * table.installment_cents,
           link
-        }
+        },
+        variant: req.body?.variant
       });
     } catch (error) {
       return res.status(502).json({ error: error.message || "Falha ao gerar a mensagem." });
     }
 
-    res.json({ message, image_url: imageUrl });
+    res.json({ message, image_url: imageUrl, complete });
   } catch (error) {
     next(error);
   }

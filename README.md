@@ -122,7 +122,8 @@ A integração com o CRM usa a URL completa de execução fornecida pelo CRM
 segredo em `Authorization: Bearer`, usa `Idempotency-Key` e repassa
 `{ "message": "...", "imageUrl": "..." }` quando há imagem. O `imageUrl` usa a
 imagem pública da tabela (`/t/:slug/og-image`) e é validado contra hosts
-privados/locais antes do envio.
+privados/locais antes do envio. Em **Configurações → Integração com CRM** é
+possível desativar o envio da imagem e manter apenas o texto.
 
 ## Multi-tenant
 

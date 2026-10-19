@@ -12,6 +12,7 @@ function userRow(id, fields = {}) {
     crm_enabled: false,
     crm_endpoint_url: "",
     crm_secret: "",
+    crm_send_image: true,
     ...fields
   };
 }

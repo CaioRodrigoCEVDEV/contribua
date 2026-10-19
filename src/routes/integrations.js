@@ -20,7 +20,7 @@ export function createIntegrationsRouter({
   router.post("/crm/send", async (req, res, next) => {
     try {
       const { rows } = await query(
-        "SELECT crm_enabled, crm_endpoint_url, crm_secret FROM users WHERE id = $1",
+        "SELECT crm_enabled, crm_endpoint_url, crm_secret, crm_send_image FROM users WHERE id = $1",
         [req.userId]
       );
       const user = rows[0];
@@ -64,11 +64,14 @@ export function createIntegrationsRouter({
         });
       }
 
+      const sendImage = user.crm_send_image === undefined
+        ? true
+        : Boolean(user.crm_send_image);
       const result = await send({
         endpoint,
         secret,
         message,
-        imageUrl: imageUrl || undefined,
+        imageUrl: sendImage ? imageUrl || undefined : undefined,
         idempotencyKey: req.body?.idempotency_key
       });
 

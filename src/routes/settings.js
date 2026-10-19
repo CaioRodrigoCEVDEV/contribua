@@ -18,6 +18,7 @@ function crmState(user, secret) {
   return {
     enabled,
     endpoint_url: endpoint,
+    send_image: user.crm_send_image === undefined ? true : Boolean(user.crm_send_image),
     has_secret: hasSecret,
     masked_secret: hasSecret ? "••••••••" : "",
     configured: Boolean(enabled && configured),
@@ -38,7 +39,7 @@ export function createSettingsRouter({
     try {
       const { rows } = await query(
         `SELECT openai_key, openai_model, openai_base_url,
-                crm_enabled, crm_endpoint_url, crm_secret
+                crm_enabled, crm_endpoint_url, crm_secret, crm_send_image
            FROM users WHERE id = $1`,
         [req.userId]
       );
@@ -63,7 +64,7 @@ export function createSettingsRouter({
     try {
       const body = req.body || {};
       const { rows } = await query(
-        "SELECT crm_enabled, crm_endpoint_url, crm_secret FROM users WHERE id = $1",
+        "SELECT crm_enabled, crm_endpoint_url, crm_secret, crm_send_image FROM users WHERE id = $1",
         [req.userId]
       );
       const current = rows[0];
@@ -89,6 +90,9 @@ export function createSettingsRouter({
       let crmEnabled = Boolean(current.crm_enabled);
       let crmEndpoint = current.crm_endpoint_url || "";
       let crmSecret = current.crm_secret || "";
+      let crmSendImage = current.crm_send_image === undefined
+        ? true
+        : Boolean(current.crm_send_image);
 
       if (body.crm_enabled !== undefined) {
         crmEnabled = Boolean(body.crm_enabled);
@@ -100,6 +104,11 @@ export function createSettingsRouter({
         crmEndpoint = rawEndpoint ? await validateEndpoint(rawEndpoint) : "";
         values.push(crmEndpoint);
         sets.push(`crm_endpoint_url = $${values.length}`);
+      }
+      if (body.crm_send_image !== undefined) {
+        crmSendImage = Boolean(body.crm_send_image);
+        values.push(crmSendImage);
+        sets.push(`crm_send_image = $${values.length}`);
       }
       if (body.crm_clear_secret === true) {
         crmSecret = "";
@@ -126,7 +135,11 @@ export function createSettingsRouter({
       await query(`UPDATE users SET ${sets.join(", ")} WHERE id = $${values.length}`, values);
 
       const state = crmState(
-        { crm_enabled: crmEnabled, crm_endpoint_url: crmEndpoint },
+        {
+          crm_enabled: crmEnabled,
+          crm_endpoint_url: crmEndpoint,
+          crm_send_image: crmSendImage
+        },
         decrypt(crmSecret)
       );
       res.json({ ok: true, crm: state });

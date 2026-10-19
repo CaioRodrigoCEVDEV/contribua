@@ -74,6 +74,7 @@
 
       const crm = settings.crm || {};
       settingsForm.elements.crm_enabled.checked = Boolean(crm.enabled);
+      settingsForm.elements.crm_send_image.checked = crm.send_image !== false;
       settingsForm.elements.crm_endpoint_url.value = crm.endpoint_url || "";
       settingsForm.elements.crm_secret.value = "";
       settingsForm.elements.crm_secret.placeholder = crm.has_secret ? crm.masked_secret : "whk_...";
@@ -103,6 +104,7 @@
       model: settingsForm.elements.model.value.trim(),
       base_url: settingsForm.elements.base_url.value.trim(),
       crm_enabled: settingsForm.elements.crm_enabled.checked,
+      crm_send_image: settingsForm.elements.crm_send_image.checked,
       crm_endpoint_url: settingsForm.elements.crm_endpoint_url.value.trim()
     };
     const apiKey = settingsForm.elements.api_key.value.trim();
@@ -240,6 +242,7 @@
       const imageUrl = messageResponse.image_url || "";
       const crm = settingsResponse && settingsResponse.settings && settingsResponse.settings.crm;
       const crmConfigured = Boolean(crm && crm.configured);
+      const crmSendImage = crm ? crm.send_image !== false : true;
       const modal = overlay.querySelector(".modal");
       modal.innerHTML = `
         <h3 class="modal-title">Mensagem para o WhatsApp</h3>
@@ -281,7 +284,7 @@
           button: crmButton,
           status: crmStatus,
           getMessage: () => textarea.value,
-          getImageUrl: () => imageUrl
+          getImageUrl: () => (crmSendImage ? imageUrl : "")
         });
       } else {
         crmButton.disabled = true;

@@ -45,6 +45,7 @@ test("salva e recupera a configuração do CRM por usuário", async () => {
     assert.equal(saved.data.crm.enabled, true);
     assert.equal(saved.data.crm.configured, true);
     assert.equal(saved.data.crm.endpoint_url, ENDPOINT);
+    assert.equal(saved.data.crm.send_image, true);
 
     const stored = store.get(USER_A);
     assert.equal(stored.crm_enabled, true);
@@ -61,6 +62,7 @@ test("salva e recupera a configuração do CRM por usuário", async () => {
     assert.equal(loaded.data.settings.crm.endpoint_url, ENDPOINT);
     assert.equal(loaded.data.settings.crm.has_secret, true);
     assert.equal(loaded.data.settings.crm.status, "ready");
+    assert.equal(loaded.data.settings.crm.send_image, true);
 
     const other = await jsonRequest(`${server.base}/api/settings`, {
       headers: auth(USER_B)
@@ -92,6 +94,37 @@ test("nunca devolve o segredo do CRM em texto aberto", async () => {
     });
     assert.equal(loaded.text.includes(SECRET), false);
     assert.equal(loaded.data.settings.crm.masked_secret, "••••••••");
+  } finally {
+    await server.close();
+  }
+});
+
+test("salva e recupera a opção de enviar ou não a imagem", async () => {
+  const { store, server } = await makeServer();
+  try {
+    await jsonRequest(`${server.base}/api/settings`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...auth(USER_A) },
+      body: JSON.stringify({
+        crm_enabled: true,
+        crm_endpoint_url: ENDPOINT,
+        crm_secret: SECRET,
+        crm_send_image: false
+      })
+    });
+
+    assert.equal(store.get(USER_A).crm_send_image, false);
+    const loaded = await jsonRequest(`${server.base}/api/settings`, {
+      headers: auth(USER_A)
+    });
+    assert.equal(loaded.data.settings.crm.send_image, false);
+
+    await jsonRequest(`${server.base}/api/settings`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...auth(USER_A) },
+      body: JSON.stringify({ crm_enabled: true, crm_send_image: true })
+    });
+    assert.equal(store.get(USER_A).crm_send_image, true);
   } finally {
     await server.close();
   }

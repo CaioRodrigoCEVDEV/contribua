@@ -129,6 +129,32 @@ test("envia image_url ao CRM junto da mensagem editada", async () => {
   }
 });
 
+test("envia somente texto quando a imagem está desativada na configuração", async () => {
+  const { calls, fetchImpl } = captureFetch(() =>
+    jsonResponse(200, { ok: true, status: "SUCCESS" })
+  );
+  const { server } = await makeServer({
+    users: [configuredUser(USER_A, { crm_send_image: false })],
+    fetchImpl
+  });
+  try {
+    const result = await jsonRequest(`${server.base}/api/integrations/crm/send`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...auth(USER_A) },
+      body: JSON.stringify({
+        message: "Somente texto",
+        image_url: "https://8.8.8.8/t/lista/og-image",
+        idempotency_key: "bbbbbbbb-1111-4111-8111-bbbbbbbbbbbb"
+      })
+    });
+
+    assert.equal(result.status, 200);
+    assert.deepEqual(JSON.parse(calls[0].options.body), { message: "Somente texto" });
+  } finally {
+    await server.close();
+  }
+});
+
 test("rejeita image_url com tipo inválido", async () => {
   const { calls, fetchImpl } = captureFetch(() => jsonResponse(200, { ok: true }));
   const { server } = await makeServer({ fetchImpl });

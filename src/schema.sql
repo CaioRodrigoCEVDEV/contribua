@@ -61,6 +61,7 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS openai_base_url text NOT NULL DEFAULT
 ALTER TABLE users ADD COLUMN IF NOT EXISTS crm_enabled boolean NOT NULL DEFAULT false;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS crm_endpoint_url text NOT NULL DEFAULT '';
 ALTER TABLE users ADD COLUMN IF NOT EXISTS crm_secret text NOT NULL DEFAULT '';
+ALTER TABLE users ADD COLUMN IF NOT EXISTS crm_send_image boolean NOT NULL DEFAULT true;
 
 -- Local do evento (endereço + link do Google Maps) e galeria de fotos do local.
 ALTER TABLE payment_tables ADD COLUMN IF NOT EXISTS location_address text NOT NULL DEFAULT '';

@@ -15,7 +15,7 @@ test("mantém o botão e o fluxo original de envio pelo WhatsApp", async () => {
   assert.match(dashboard, /https:\/\/web\.whatsapp\.com\/send/);
   assert.match(dashboard, /data-role="crm"/);
   assert.match(dashboard, /window\.ContribuaCrm\.createSender/);
-  assert.match(dashboard, /getImageUrl: \(\) => imageUrl/);
+  assert.match(dashboard, /getImageUrl: \(\) =>/);
 });
 
 test("expõe a URL pública da imagem gerada para envio ao CRM", async () => {
@@ -27,6 +27,7 @@ test("expõe a URL pública da imagem gerada para envio ao CRM", async () => {
 test("inclui os campos da integração na tela de configurações", async () => {
   const html = await readFile(join(root, "public", "dashboard.html"), "utf8");
   assert.match(html, /name="crm_enabled"/);
+  assert.match(html, /name="crm_send_image"/);
   assert.match(html, /name="crm_endpoint_url"/);
   assert.match(html, /name="crm_secret"/);
   assert.match(html, /Integração com CRM/);

@@ -206,6 +206,11 @@
           <input type="checkbox" name="crm_enabled" id="settings-crm-enabled">
           <span>Ativar envio de mensagens ao CRM</span>
         </label>
+        <label class="field field-check">
+          <input type="checkbox" name="crm_send_image" id="settings-crm-send-image">
+          <span>Enviar a imagem da tabela junto da mensagem</span>
+        </label>
+        <small class="crm-settings-status" id="settings-crm-image-hint">Se desativado, somente o texto será enviado ao CRM.</small>
         <label class="field"><span>URL completa do webhook</span>
           <input type="url" name="crm_endpoint_url" id="settings-crm-endpoint" autocomplete="off" placeholder="https://crm.exemplo.com.br/api/integrations/webhooks/UUID/execute">
           <small>Cole a URL de execução fornecida pelo CRM. Ela deve terminar em /api/integrations/webhooks/&lt;id&gt;/execute.</small>

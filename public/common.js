@@ -8,7 +8,15 @@ window.App = {
       body: body ? JSON.stringify(body) : undefined
     });
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.error || "Erro na requisição");
+    if (!res.ok) {
+      const error = new Error(data.error || "Erro na requisição");
+      error.status = res.status;
+      error.code = data.code;
+      error.keep_idempotency_key = data.keep_idempotency_key;
+      error.unknown_result = data.unknown_result;
+      error.idempotency_key = data.idempotency_key;
+      throw error;
+    }
     return data;
   },
 

@@ -173,9 +173,10 @@
 
   <div class="modal-overlay" id="settings-modal" hidden>
     <div class="modal modal-wide" role="dialog" aria-modal="true" aria-labelledby="settings-title">
-      <h3 class="modal-title" id="settings-title">Configurações de IA</h3>
-      <p class="modal-message" style="margin-bottom:18px">A chave fica salva apenas na sua conta e é usada para gerar as mensagens do WhatsApp.</p>
+      <h3 class="modal-title" id="settings-title">Configurações</h3>
+      <p class="modal-message" style="margin-bottom:18px">As credenciais ficam salvas apenas na sua conta. O segredo do CRM é armazenado criptografado e nunca é exibido.</p>
       <form id="settings-form">
+        <div class="settings-section-title">Inteligência artificial</div>
         <label class="field"><span>API key</span>
           <input type="password" name="api_key" autocomplete="off" placeholder="sk-...">
           <small id="settings-key-hint">Nenhuma chave configurada.</small>
@@ -198,6 +199,23 @@
           <input type="text" name="base_url" placeholder="https://api.openai.com/v1">
           <small>Use para endpoints compatíveis com OpenAI (proxy, Azure, modelo próprio).</small>
         </label>
+
+        <div class="divider"></div>
+        <div class="settings-section-title">Integração com CRM</div>
+        <label class="field field-check">
+          <input type="checkbox" name="crm_enabled" id="settings-crm-enabled">
+          <span>Ativar envio de mensagens ao CRM</span>
+        </label>
+        <label class="field"><span>URL completa do webhook</span>
+          <input type="url" name="crm_endpoint_url" id="settings-crm-endpoint" autocomplete="off" placeholder="https://crm.exemplo.com.br/api/integrations/webhooks/UUID/execute">
+          <small>Cole a URL de execução fornecida pelo CRM. Ela deve terminar em /api/integrations/webhooks/&lt;id&gt;/execute.</small>
+        </label>
+        <label class="field"><span>Segredo do webhook</span>
+          <input type="password" name="crm_secret" id="settings-crm-secret" autocomplete="new-password" placeholder="whk_...">
+          <small id="settings-crm-secret-hint">Nenhum segredo configurado.</small>
+        </label>
+        <p class="crm-settings-status" id="settings-crm-status">Integração desativada.</p>
+
         <div class="modal-actions modal-actions-split">
           <button class="btn btn-danger" type="button" id="settings-remove-key" hidden>Remover chave</button>
           <div class="modal-actions-right">
@@ -211,6 +229,7 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="common.js"></script>
+  <script src="crm-send.js"></script>
   <script src="dashboard.js"></script>
 </body>
 </html>

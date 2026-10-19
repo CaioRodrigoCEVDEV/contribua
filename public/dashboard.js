@@ -51,6 +51,14 @@
   const settingsForm = document.getElementById("settings-form");
   const settingsKeyHint = document.getElementById("settings-key-hint");
   const settingsRemoveKey = document.getElementById("settings-remove-key");
+  const settingsCrmStatus = document.getElementById("settings-crm-status");
+  const settingsCrmSecretHint = document.getElementById("settings-crm-secret-hint");
+
+  function crmSettingsStatus(crm) {
+    if (!crm || !crm.enabled) return "Integração desativada.";
+    if (crm.status === "ready") return "Integração ativa e configurada.";
+    return "Integração ativa, mas incompleta. Informe a URL e o segredo.";
+  }
 
   async function openSettings() {
     try {
@@ -63,6 +71,17 @@
         ? "Chave configurada. Deixe em branco para manter."
         : "Nenhuma chave configurada.";
       settingsRemoveKey.hidden = !settings.has_key;
+
+      const crm = settings.crm || {};
+      settingsForm.elements.crm_enabled.checked = Boolean(crm.enabled);
+      settingsForm.elements.crm_endpoint_url.value = crm.endpoint_url || "";
+      settingsForm.elements.crm_secret.value = "";
+      settingsForm.elements.crm_secret.placeholder = crm.has_secret ? crm.masked_secret : "whk_...";
+      settingsCrmSecretHint.textContent = crm.has_secret
+        ? "Segredo configurado. Deixe em branco para manter."
+        : "Nenhum segredo configurado.";
+      settingsCrmStatus.textContent = crmSettingsStatus(crm);
+      settingsCrmStatus.classList.toggle("is-ready", crm.status === "ready");
       settingsModal.hidden = false;
     } catch (error) {
       App.toast(error.message);
@@ -82,10 +101,14 @@
     event.preventDefault();
     const body = {
       model: settingsForm.elements.model.value.trim(),
-      base_url: settingsForm.elements.base_url.value.trim()
+      base_url: settingsForm.elements.base_url.value.trim(),
+      crm_enabled: settingsForm.elements.crm_enabled.checked,
+      crm_endpoint_url: settingsForm.elements.crm_endpoint_url.value.trim()
     };
     const apiKey = settingsForm.elements.api_key.value.trim();
     if (apiKey) body.api_key = apiKey;
+    const crmSecret = settingsForm.elements.crm_secret.value.trim();
+    if (crmSecret) body.crm_secret = crmSecret;
     try {
       await App.api("/api/settings", { method: "PUT", body });
       App.toast("Configurações salvas!");
@@ -206,17 +229,25 @@
       <h3 class="modal-title">Mensagem para o WhatsApp</h3>
       <p class="modal-message">Gerando a mensagem com IA, aguarde...</p>`);
     try {
-      const { message } = await App.api(`/api/tables/${id}/message`, {
-        method: "POST",
-        body: { origin: window.location.origin }
-      });
+      const [messageResponse, settingsResponse] = await Promise.all([
+        App.api(`/api/tables/${id}/message`, {
+          method: "POST",
+          body: { origin: window.location.origin }
+        }),
+        App.api("/api/settings").catch(() => null)
+      ]);
+      const message = messageResponse.message;
+      const crm = settingsResponse && settingsResponse.settings && settingsResponse.settings.crm;
+      const crmConfigured = Boolean(crm && crm.configured);
       const modal = overlay.querySelector(".modal");
       modal.innerHTML = `
         <h3 class="modal-title">Mensagem para o WhatsApp</h3>
         <textarea class="modal-textarea" id="generated-message"></textarea>
-        <div class="modal-actions">
+        <p class="crm-status" data-role="crm-status" role="status" aria-live="polite" hidden></p>
+        <div class="modal-actions modal-actions-wrap">
           <button class="btn" type="button" data-role="close">Fechar</button>
           <button class="btn" type="button" data-role="copy">Copiar</button>
+          <button class="btn btn-dark" type="button" data-role="crm" ${crmConfigured ? "" : "disabled"}>Enviar ao CRM</button>
           <button class="btn btn-primary" type="button" data-role="whatsapp">Abrir no WhatsApp</button>
         </div>`;
       const textarea = modal.querySelector("#generated-message");
@@ -240,6 +271,22 @@
         const base = isMobile ? "https://wa.me/" : "https://web.whatsapp.com/send";
         window.open(`${base}?text=${encodeURIComponent(text)}`, "_blank", "noopener");
       });
+
+      const crmButton = modal.querySelector('[data-role="crm"]');
+      const crmStatus = modal.querySelector('[data-role="crm-status"]');
+      if (crmConfigured && window.ContribuaCrm) {
+        window.ContribuaCrm.createSender({
+          api: App.api,
+          button: crmButton,
+          status: crmStatus,
+          getMessage: () => textarea.value
+        });
+      } else {
+        crmButton.disabled = true;
+        crmStatus.hidden = false;
+        crmStatus.classList.add("is-info");
+        crmStatus.textContent = "Integração com o CRM não configurada. Acesse Configurações → Integração com CRM.";
+      }
     } catch (error) {
       const modal = overlay.querySelector(".modal");
       modal.innerHTML = `

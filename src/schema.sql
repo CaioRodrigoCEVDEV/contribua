@@ -57,6 +57,11 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS openai_key text NOT NULL DEFAULT '';
 ALTER TABLE users ADD COLUMN IF NOT EXISTS openai_model text NOT NULL DEFAULT '';
 ALTER TABLE users ADD COLUMN IF NOT EXISTS openai_base_url text NOT NULL DEFAULT '';
 
+-- Integração com o CRM (endpoint completo do webhook + segredo criptografado em repouso).
+ALTER TABLE users ADD COLUMN IF NOT EXISTS crm_enabled boolean NOT NULL DEFAULT false;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS crm_endpoint_url text NOT NULL DEFAULT '';
+ALTER TABLE users ADD COLUMN IF NOT EXISTS crm_secret text NOT NULL DEFAULT '';
+
 -- Local do evento (endereço + link do Google Maps) e galeria de fotos do local.
 ALTER TABLE payment_tables ADD COLUMN IF NOT EXISTS location_address text NOT NULL DEFAULT '';
 ALTER TABLE payment_tables ADD COLUMN IF NOT EXISTS location_url text NOT NULL DEFAULT '';

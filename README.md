@@ -110,6 +110,18 @@ Acesse **http://localhost:3000**.
 | GET    | `/:slug`          | Dados da tabela compartilhada + resumo + participantes|
 | POST   | `/:slug/toggle`   | `{ participantId }` alterna pago/pendente (se liberado)|
 
+### Configurações e integrações — requer login
+| Método | Rota                          | Descrição                                                   |
+|--------|-------------------------------|-------------------------------------------------------------|
+| GET    | `/api/settings`               | Configurações de IA e estado da integração com o CRM        |
+| PUT    | `/api/settings`               | Salva IA e integração com o CRM (segredo criptografado)     |
+| POST   | `/api/integrations/crm/send`  | `{ message, idempotency_key? }` envia ao webhook do CRM     |
+
+A integração com o CRM usa a URL completa de execução fornecida pelo CRM
+(`.../api/integrations/webhooks/:id/execute`). O backend valida a URL, envia o
+segredo em `Authorization: Bearer`, usa `Idempotency-Key` e repassa apenas
+`{ "message": "..." }`.
+
 ## Multi-tenant
 
 - Cada `payment_table` pertence a um `user` (`user_id`). As rotas de `/api/tables`
@@ -122,6 +134,8 @@ Acesse **http://localhost:3000**.
 - Senhas com hash **bcrypt**; nunca são retornadas pela API.
 - Sessão em **cookie httpOnly** (JWT, 7 dias). Em `NODE_ENV=production` o cookie é `secure`.
 - Consultas sempre parametrizadas (`pg`), evitando SQL injection.
+- Segredos de IA e do CRM são criptografados em repouso (AES-256-GCM) e nunca voltam ao navegador.
+- A URL do CRM é validada no cadastro e no envio, com HTTPS obrigatório em produção e bloqueio de hosts locais/privados.
 - **Importante:** troque o `JWT_SECRET` em produção.
 
 ## Próximos passos sugeridos

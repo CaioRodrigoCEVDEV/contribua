@@ -9,6 +9,7 @@ import authRoutes from "./routes/auth.js";
 import tableRoutes from "./routes/tables.js";
 import publicRoutes from "./routes/public.js";
 import settingsRoutes from "./routes/settings.js";
+import integrationRoutes from "./routes/integrations.js";
 import { pool } from "./db.js";
 
 process.on("unhandledRejection", (error) => console.error("Unhandled rejection:", error));
@@ -35,6 +36,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/tables", tableRoutes);
 app.use("/api/public", publicRoutes);
 app.use("/api/settings", settingsRoutes);
+app.use("/api/integrations", integrationRoutes);
 
 function escapeHtml(value) {
   return String(value == null ? "" : value)

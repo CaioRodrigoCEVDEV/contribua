@@ -1,4 +1,4 @@
-const CACHE = "contribua-v2";
+const CACHE = "contribua-v3";
 const ASSETS = [
   "/",
   "/dashboard",
@@ -6,6 +6,7 @@ const ASSETS = [
   "/poster.css",
   "/common.js",
   "/index.js",
+  "/crm-send.js",
   "/dashboard.js",
   "/poster.js",
   "/favicon.svg",

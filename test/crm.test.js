@@ -5,6 +5,7 @@ import {
   CrmValidationError,
   normalizeCrmEndpoint,
   normalizeIdempotencyKey,
+  normalizeImageUrl,
   sendCrmMessage
 } from "../src/crm.js";
 
@@ -105,6 +106,43 @@ test("envia exatamente o texto editado, com headers e payload do contrato", asyn
     message_id: "message-1",
     conversation_id: "conversation-1"
   });
+});
+
+test("envia imageUrl junto da mensagem quando informado", async () => {
+  const { calls, fetchImpl } = captureFetch(() =>
+    jsonResponse(200, { ok: true, status: "SUCCESS" })
+  );
+  const imageUrl = "https://8.8.8.8/t/lista/og-image?v=1";
+
+  const result = await sendCrmMessage({
+    endpoint: ENDPOINT,
+    secret: SECRET,
+    message: "Mensagem com imagem",
+    imageUrl,
+    idempotencyKey: "99999999-9999-4999-8999-999999999999",
+    fetchImpl
+  });
+
+  assert.deepEqual(JSON.parse(calls[0].options.body), {
+    message: "Mensagem com imagem",
+    imageUrl
+  });
+  assert.equal(result.status, "success");
+});
+
+test("valida a URL pública da imagem antes do envio", async () => {
+  assert.equal(
+    await normalizeImageUrl("https://8.8.8.8/t/lista/og-image?v=1"),
+    "https://8.8.8.8/t/lista/og-image?v=1"
+  );
+  await assert.rejects(
+    normalizeImageUrl("https://127.0.0.1/t/lista/og-image"),
+    (error) => error instanceof CrmValidationError && error.code === "CRM_URL_PRIVATE"
+  );
+  await assert.rejects(
+    normalizeImageUrl("file:///etc/passwd"),
+    (error) => error instanceof CrmValidationError
+  );
 });
 
 test("gera UUID quando a chave de idempotência não é informada", async () => {

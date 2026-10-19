@@ -237,6 +237,7 @@
         App.api("/api/settings").catch(() => null)
       ]);
       const message = messageResponse.message;
+      const imageUrl = messageResponse.image_url || "";
       const crm = settingsResponse && settingsResponse.settings && settingsResponse.settings.crm;
       const crmConfigured = Boolean(crm && crm.configured);
       const modal = overlay.querySelector(".modal");
@@ -279,7 +280,8 @@
           api: App.api,
           button: crmButton,
           status: crmStatus,
-          getMessage: () => textarea.value
+          getMessage: () => textarea.value,
+          getImageUrl: () => imageUrl
         });
       } else {
         crmButton.disabled = true;

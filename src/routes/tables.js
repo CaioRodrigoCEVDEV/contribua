@@ -280,6 +280,7 @@ router.post("/:id/message", async (req, res, next) => {
       ? requestedOrigin
       : `${req.protocol}://${req.get("host")}`;
     const link = `${base}/t/${table.slug}`;
+    const imageUrl = `${base}/t/${table.slug}/og-image`;
 
     let message;
     try {
@@ -308,7 +309,7 @@ router.post("/:id/message", async (req, res, next) => {
       return res.status(502).json({ error: error.message || "Falha ao gerar a mensagem." });
     }
 
-    res.json({ message });
+    res.json({ message, image_url: imageUrl });
   } catch (error) {
     next(error);
   }

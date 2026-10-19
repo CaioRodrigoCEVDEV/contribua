@@ -52,7 +52,7 @@ function deferred() {
   return { promise, resolve, reject };
 }
 
-function createHarness(message) {
+function createHarness(message, imageUrl = "") {
   const button = fakeButton();
   const status = makeStatus();
   const calls = [];
@@ -65,7 +65,8 @@ function createHarness(message) {
     api,
     button,
     status,
-    getMessage: () => message.value
+    getMessage: () => message.value,
+    getImageUrl: () => imageUrl
   });
   return {
     button,
@@ -100,6 +101,20 @@ test("desabilita o botão durante o envio e impede cliques repetidos", async () 
   assert.equal(harness.button.disabled, false);
   assert.equal(harness.button.textContent, "Enviar ao CRM");
   assert.equal(harness.status.classes["is-success"], true);
+});
+
+test("envia a URL da imagem junto com o texto editado", async () => {
+  const message = { value: "Texto com imagem" };
+  const harness = createHarness(message, "https://contribua.example.com/t/lista/og-image");
+  harness.setHandler(() => ({ ok: true, status: "success" }));
+
+  await harness.button.click();
+
+  assert.deepEqual(harness.calls[0].options.body, {
+    message: "Texto com imagem",
+    idempotency_key: harness.calls[0].options.body.idempotency_key,
+    image_url: "https://contribua.example.com/t/lista/og-image"
+  });
 });
 
 test("mantém a mesma chave após resultado desconhecido", async () => {

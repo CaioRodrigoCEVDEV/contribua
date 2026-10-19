@@ -56,10 +56,19 @@ export function createIntegrationsRouter({
         });
       }
 
+      const imageUrl = req.body?.image_url;
+      if (imageUrl !== undefined && imageUrl !== null && typeof imageUrl !== "string") {
+        return res.status(400).json({
+          error: "A URL da imagem é inválida.",
+          code: "CRM_IMAGE_URL_INVALID"
+        });
+      }
+
       const result = await send({
         endpoint,
         secret,
         message,
+        imageUrl: imageUrl || undefined,
         idempotencyKey: req.body?.idempotency_key
       });
 

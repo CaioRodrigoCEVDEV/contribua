@@ -87,39 +87,30 @@ export function isPrivateAddress(address) {
   return true;
 }
 
-function basicValidateEndpoint(raw, { requireHttps }) {
+function parsePublicUrl(raw, { requireHttps, allowQuery = false, label = "do CRM", maxLength = 2_000 }) {
   const value = String(raw == null ? "" : raw).trim();
-  if (!value || value.length > 2_000) {
-    throw new CrmValidationError(
-      "CRM_URL_INVALID",
-      "Informe a URL completa do endpoint de execução do webhook do CRM."
-    );
+  if (!value || value.length > maxLength) {
+    throw new CrmValidationError("CRM_URL_INVALID", `Informe uma URL válida ${label}.`);
   }
 
   let url;
   try {
     url = new URL(value);
   } catch {
-    throw new CrmValidationError(
-      "CRM_URL_INVALID",
-      "A URL do CRM é inválida. Informe a URL completa do endpoint de execução."
-    );
+    throw new CrmValidationError("CRM_URL_INVALID", `A URL ${label} é inválida.`);
   }
 
   if (url.protocol !== "https:" && url.protocol !== "http:") {
-    throw new CrmValidationError("CRM_URL_INVALID", "A URL do CRM deve usar HTTP ou HTTPS.");
+    throw new CrmValidationError("CRM_URL_INVALID", `A URL ${label} deve usar HTTP ou HTTPS.`);
   }
   if (requireHttps && url.protocol !== "https:") {
-    throw new CrmValidationError("CRM_URL_HTTPS_REQUIRED", "Em produção, a URL do CRM deve usar HTTPS.");
+    throw new CrmValidationError("CRM_URL_HTTPS_REQUIRED", `Em produção, a URL ${label} deve usar HTTPS.`);
   }
   if (url.username || url.password) {
-    throw new CrmValidationError("CRM_URL_CREDENTIALS", "A URL do CRM não pode conter usuário ou senha.");
+    throw new CrmValidationError("CRM_URL_CREDENTIALS", `A URL ${label} não pode conter usuário ou senha.`);
   }
-  if (url.search || url.hash) {
-    throw new CrmValidationError(
-      "CRM_URL_INVALID",
-      "A URL do CRM não pode conter parâmetros de consulta ou fragmentos."
-    );
+  if ((!allowQuery && url.search) || url.hash) {
+    throw new CrmValidationError("CRM_URL_INVALID", `A URL ${label} não pode conter parâmetros ou fragmentos.`);
   }
 
   let hostname = url.hostname.toLowerCase().replace(/\.+$/, "");
@@ -127,20 +118,26 @@ function basicValidateEndpoint(raw, { requireHttps }) {
     hostname = hostname.slice(1, -1);
   }
   if (!hostname) {
-    throw new CrmValidationError("CRM_URL_INVALID", "A URL do CRM não possui um host válido.");
+    throw new CrmValidationError("CRM_URL_INVALID", `A URL ${label} não possui um host válido.`);
   }
   if (
     hostname === "localhost" ||
     BLOCKED_HOST_SUFFIXES.some((suffix) => hostname.endsWith(suffix))
   ) {
-    throw new CrmValidationError("CRM_URL_PRIVATE", "A URL do CRM não pode apontar para um host local.");
+    throw new CrmValidationError("CRM_URL_PRIVATE", `A URL ${label} não pode apontar para um host local.`);
   }
   if (net.isIP(hostname) && isPrivateAddress(hostname)) {
     throw new CrmValidationError(
       "CRM_URL_PRIVATE",
-      "A URL do CRM não pode apontar para um endereço privado, reservado ou local."
+      `A URL ${label} não pode apontar para um endereço privado, reservado ou local.`
     );
   }
+
+  return { url, hostname };
+}
+
+function basicValidateEndpoint(raw, { requireHttps }) {
+  const { url, hostname } = parsePublicUrl(raw, { requireHttps, label: "do endpoint do CRM" });
 
   const pathname = url.pathname.replace(/\/+$/, "");
   if (/\/api\/api(\/|$)/i.test(pathname)) {
@@ -159,6 +156,32 @@ function basicValidateEndpoint(raw, { requireHttps }) {
   return { url, hostname };
 }
 
+async function assertPublicHostname(hostname, lookup, label) {
+  if (net.isIP(hostname)) return;
+
+  let addresses;
+  try {
+    addresses = await lookup(hostname);
+  } catch {
+    throw new CrmValidationError(
+      "CRM_HOST_UNRESOLVABLE",
+      `Não foi possível resolver o domínio da URL ${label}.`
+    );
+  }
+  if (!Array.isArray(addresses) || addresses.length === 0) {
+    throw new CrmValidationError(
+      "CRM_HOST_UNRESOLVABLE",
+      `Não foi possível resolver o domínio da URL ${label}.`
+    );
+  }
+  if (addresses.some((entry) => isPrivateAddress(String(entry.address || entry)))) {
+    throw new CrmValidationError(
+      "CRM_URL_PRIVATE",
+      `A URL ${label} não pode apontar para um endereço privado, reservado ou local.`
+    );
+  }
+}
+
 async function defaultLookup(hostname) {
   return dns.lookup(hostname, { all: true, verbatim: true });
 }
@@ -167,31 +190,20 @@ export async function normalizeCrmEndpoint(raw, options = {}) {
   const requireHttps = options.requireHttps ?? process.env.NODE_ENV === "production";
   const lookup = options.lookup || defaultLookup;
   const { url, hostname } = basicValidateEndpoint(raw, { requireHttps });
+  await assertPublicHostname(hostname, lookup, "do endpoint do CRM");
+  return url.toString();
+}
 
-  if (!net.isIP(hostname)) {
-    let addresses;
-    try {
-      addresses = await lookup(hostname);
-    } catch {
-      throw new CrmValidationError(
-        "CRM_HOST_UNRESOLVABLE",
-        "Não foi possível resolver o domínio da URL do CRM."
-      );
-    }
-    if (!Array.isArray(addresses) || addresses.length === 0) {
-      throw new CrmValidationError(
-        "CRM_HOST_UNRESOLVABLE",
-        "Não foi possível resolver o domínio da URL do CRM."
-      );
-    }
-    if (addresses.some((entry) => isPrivateAddress(String(entry.address || entry)))) {
-      throw new CrmValidationError(
-        "CRM_URL_PRIVATE",
-        "A URL do CRM não pode apontar para um endereço privado, reservado ou local."
-      );
-    }
-  }
-
+export async function normalizeImageUrl(raw, options = {}) {
+  const requireHttps = options.requireHttps ?? process.env.NODE_ENV === "production";
+  const lookup = options.lookup || defaultLookup;
+  const { url, hostname } = parsePublicUrl(raw, {
+    requireHttps,
+    allowQuery: true,
+    label: "da imagem",
+    maxLength: 2_048
+  });
+  await assertPublicHostname(hostname, lookup, "da imagem");
   return url.toString();
 }
 
@@ -326,6 +338,7 @@ export async function sendCrmMessage({
   endpoint,
   secret,
   message,
+  imageUrl,
   idempotencyKey,
   fetchImpl = fetch,
   lookup,
@@ -359,6 +372,9 @@ export async function sendCrmMessage({
 
   const key = normalizeIdempotencyKey(idempotencyKey);
   const normalizedEndpoint = await normalizeCrmEndpoint(endpoint, { lookup, requireHttps });
+  const normalizedImageUrl = imageUrl
+    ? await normalizeImageUrl(imageUrl, { lookup, requireHttps })
+    : "";
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -374,7 +390,7 @@ export async function sendCrmMessage({
         Authorization: `Bearer ${secret}`,
         "Idempotency-Key": key
       },
-      body: JSON.stringify({ message })
+      body: JSON.stringify(normalizedImageUrl ? { message, imageUrl: normalizedImageUrl } : { message })
     });
   } catch (error) {
     if (error?.name === "AbortError") {

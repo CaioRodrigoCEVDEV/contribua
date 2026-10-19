@@ -103,6 +103,49 @@ test("envia a mensagem editada ao CRM e normaliza o resultado", async () => {
   }
 });
 
+test("envia image_url ao CRM junto da mensagem editada", async () => {
+  const { calls, fetchImpl } = captureFetch(() =>
+    jsonResponse(200, { ok: true, status: "SUCCESS", executionId: "exec-image" })
+  );
+  const { server } = await makeServer({ fetchImpl });
+  try {
+    const result = await jsonRequest(`${server.base}/api/integrations/crm/send`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...auth(USER_A) },
+      body: JSON.stringify({
+        message: "Mensagem com imagem",
+        image_url: "https://8.8.8.8/t/lista/og-image",
+        idempotency_key: "aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa"
+      })
+    });
+
+    assert.equal(result.status, 200);
+    assert.deepEqual(JSON.parse(calls[0].options.body), {
+      message: "Mensagem com imagem",
+      imageUrl: "https://8.8.8.8/t/lista/og-image"
+    });
+  } finally {
+    await server.close();
+  }
+});
+
+test("rejeita image_url com tipo inválido", async () => {
+  const { calls, fetchImpl } = captureFetch(() => jsonResponse(200, { ok: true }));
+  const { server } = await makeServer({ fetchImpl });
+  try {
+    const result = await jsonRequest(`${server.base}/api/integrations/crm/send`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...auth(USER_A) },
+      body: JSON.stringify({ message: "Olá", image_url: { url: "x" } })
+    });
+    assert.equal(result.status, 400);
+    assert.equal(result.data.code, "CRM_IMAGE_URL_INVALID");
+    assert.equal(calls.length, 0);
+  } finally {
+    await server.close();
+  }
+});
+
 test("rejeita requisições sem sessão do Contribua", async () => {
   const { calls, fetchImpl } = captureFetch(() => jsonResponse(200, { ok: true }));
   const { server } = await makeServer({ fetchImpl });

@@ -28,7 +28,7 @@
     });
   }
 
-  function createSender({ api, button, status, getMessage, onChange }) {
+  function createSender({ api, button, status, getMessage, getImageUrl, onChange }) {
     let sending = false;
     let pendingKey = null;
     let pendingMessage = null;
@@ -70,13 +70,18 @@
         pendingMessage = message;
       }
 
+      const imageUrl = getImageUrl ? String(getImageUrl() || "").trim() : "";
       setSending(true);
       setStatus("Enviando ao CRM...", "info");
 
       try {
         const result = await api("/api/integrations/crm/send", {
           method: "POST",
-          body: { message, idempotency_key: pendingKey }
+          body: {
+            message,
+            idempotency_key: pendingKey,
+            ...(imageUrl ? { image_url: imageUrl } : {})
+          }
         });
 
         if (result && result.status === "processing") {

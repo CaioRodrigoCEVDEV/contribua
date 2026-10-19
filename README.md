@@ -115,12 +115,14 @@ Acesse **http://localhost:3000**.
 |--------|-------------------------------|-------------------------------------------------------------|
 | GET    | `/api/settings`               | Configurações de IA e estado da integração com o CRM        |
 | PUT    | `/api/settings`               | Salva IA e integração com o CRM (segredo criptografado)     |
-| POST   | `/api/integrations/crm/send`  | `{ message, idempotency_key? }` envia ao webhook do CRM     |
+| POST   | `/api/integrations/crm/send`  | `{ message, image_url?, idempotency_key? }` envia ao CRM    |
 
 A integração com o CRM usa a URL completa de execução fornecida pelo CRM
 (`.../api/integrations/webhooks/:id/execute`). O backend valida a URL, envia o
-segredo em `Authorization: Bearer`, usa `Idempotency-Key` e repassa apenas
-`{ "message": "..." }`.
+segredo em `Authorization: Bearer`, usa `Idempotency-Key` e repassa
+`{ "message": "...", "imageUrl": "..." }` quando há imagem. O `imageUrl` usa a
+imagem pública da tabela (`/t/:slug/og-image`) e é validado contra hosts
+privados/locais antes do envio.
 
 ## Multi-tenant
 

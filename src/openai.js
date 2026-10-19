@@ -182,13 +182,14 @@ function buildSystemPrompt(data, style) {
     "- Separe os blocos com uma linha em branco.",
     "- Preserve EXATAMENTE todos os números, valores, emojis, nomes e o link no final.",
     "- Não invente valores, pagamentos ou informações que não estejam no rascunho.",
+    "- Se houver um contexto fornecido pelo usuário, incorpore-o de forma natural sem inventar informações além dele.",
     "- Não use markdown (sem *, # ou crases). Retorne apenas a mensagem final."
   ].join("\n");
 }
 
-function buildUserPrompt(data, draft, style) {
+function buildUserPrompt(data, draft, style, context) {
   const complete = isContributionComplete(data);
-  return [
+  const lines = [
     `Reescreva a mensagem abaixo em uma versão ${style.tone}, pronta para enviar no grupo do WhatsApp.`,
     "Produza uma versão original e diferente de fórmulas prontas; não copie o rascunho literalmente.",
     "",
@@ -199,7 +200,18 @@ function buildUserPrompt(data, draft, style) {
     complete
       ? "- A mensagem deve deixar claro que a contribuição foi 100% concluída e agradecer a todos."
       : "- A mensagem deve lembrar delicadamente quem ainda não pagou e manter o PIX.",
-    "- Não use markdown.",
+    "- Não use markdown."
+  ];
+  if (context) {
+    lines.push(
+      "",
+      "Contexto adicional fornecido pelo usuário (use como referência e incorpore de forma natural):",
+      '"""',
+      context,
+      '"""'
+    );
+  }
+  lines.push(
     "",
     "Mensagem:",
     '"""',
@@ -207,12 +219,14 @@ function buildUserPrompt(data, draft, style) {
     '"""',
     "",
     "Retorne apenas a mensagem final, pronta para enviar."
-  ].join("\n");
+  );
+  return lines.join("\n");
 }
 
-export async function generateWhatsappMessage({ apiKey, baseUrl, model, data, variant }) {
+export async function generateWhatsappMessage({ apiKey, baseUrl, model, data, variant, context }) {
   if (!apiKey) throw new Error("API key não configurada.");
 
+  const cleanContext = String(context || "").trim().slice(0, 500);
   const complete = isContributionComplete(data);
   const style = pickStyle(complete ? COMPLETE_STYLES : UPDATE_STYLES, variant);
   const draft = complete ? buildCompleteDraft(data, style) : buildUpdateDraft(data, style);
@@ -234,7 +248,7 @@ export async function generateWhatsappMessage({ apiKey, baseUrl, model, data, va
         model: model || "gpt-5.6-luna",
         messages: [
           { role: "system", content: buildSystemPrompt(data, style) },
-          { role: "user", content: buildUserPrompt(data, draft, style) }
+          { role: "user", content: buildUserPrompt(data, draft, style, cleanContext) }
         ]
       })
     });

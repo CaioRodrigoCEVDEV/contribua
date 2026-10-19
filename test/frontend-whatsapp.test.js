@@ -18,6 +18,9 @@ test("mantém o botão e o fluxo original de envio pelo WhatsApp", async () => {
   assert.match(dashboard, /getImageUrl: \(\) =>/);
   assert.match(dashboard, /data-role="regenerate"/);
   assert.match(dashboard, /Gerar outra versão/);
+  assert.match(dashboard, /id="message-context"/);
+  assert.match(dashboard, /context: contextInput\.value\.trim\(\)/);
+  assert.doesNotMatch(dashboard, /if \(event\.target === overlay\) overlay\.remove\(\)/);
 });
 
 test("expõe a URL pública da imagem gerada para envio ao CRM", async () => {

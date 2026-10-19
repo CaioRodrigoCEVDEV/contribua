@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { buildDraft, isContributionComplete } from "../src/openai.js";
+import { buildDraft, generateWhatsappMessage, isContributionComplete } from "../src/openai.js";
 
 function baseData(overrides = {}) {
   return {
@@ -57,6 +57,43 @@ test("gera versões diferentes para a mensagem de atualização", () => {
     assert.match(message, /084\.165\.811-00/);
     assert.match(message, /https:\/\/contribua\.example\.com\/t\/espaco-mirante/);
   }
+});
+
+test("envia o contexto do usuário no prompt da IA", async () => {
+  const originalFetch = globalThis.fetch;
+  let requestBody = null;
+  globalThis.fetch = async (url, options) => {
+    requestBody = JSON.parse(options.body);
+    return new Response(
+      JSON.stringify({
+        choices: [
+          {
+            message: {
+              content: "Linha um\n\nLinha dois\n\nLinha três\n\nLinha quatro\n\nLinha cinco\n\nLinha seis"
+            }
+          }
+        ]
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
+    );
+  };
+
+  try {
+    await generateWhatsappMessage({
+      apiKey: "test-key",
+      baseUrl: "https://8.8.8.8/v1",
+      model: "test-model",
+      data: baseData(),
+      variant: "classica",
+      context: "Lembrar que o prazo é sexta-feira."
+    });
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+
+  assert.match(requestBody.messages[1].content, /Contexto adicional fornecido pelo usuário/);
+  assert.match(requestBody.messages[1].content, /prazo é sexta-feira/);
+  assert.match(requestBody.messages[0].content, /Estilo desejado/);
 });
 
 test("gera mensagem de finalização quando todos já pagaram", () => {

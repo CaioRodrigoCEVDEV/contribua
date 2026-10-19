@@ -221,7 +221,6 @@
     const overlay = document.createElement("div");
     overlay.className = "modal-overlay";
     overlay.innerHTML = `<div class="modal modal-wide" role="dialog" aria-modal="true">${html}</div>`;
-    overlay.addEventListener("click", (event) => { if (event.target === overlay) overlay.remove(); });
     document.body.appendChild(overlay);
     return overlay;
   }
@@ -250,6 +249,11 @@
         : "Mensagem para o WhatsApp";
       modal.innerHTML = `
         <h3 class="modal-title">${modalTitle}</h3>
+        <label class="field message-context">
+          <span>Contexto para a IA (opcional)</span>
+          <textarea class="modal-context" id="message-context" maxlength="500" rows="2" placeholder="Ex.: lembrar que o prazo é sexta-feira e agradecer a quem já pagou."></textarea>
+          <small>Use este campo para dar uma referência e gerar uma nova versão da mensagem.</small>
+        </label>
         <textarea class="modal-textarea" id="generated-message"></textarea>
         <p class="crm-status" data-role="crm-status" role="status" aria-live="polite" hidden></p>
         <div class="modal-actions modal-actions-wrap">
@@ -260,6 +264,7 @@
           <button class="btn btn-primary" type="button" data-role="whatsapp">Abrir no WhatsApp</button>
         </div>`;
       const textarea = modal.querySelector("#generated-message");
+      const contextInput = modal.querySelector("#message-context");
       textarea.value = message;
       let lastGenerated = message;
       let regenerating = false;
@@ -280,7 +285,11 @@
         try {
           const response = await App.api(`/api/tables/${id}/message`, {
             method: "POST",
-            body: { origin: window.location.origin, variant }
+            body: {
+              origin: window.location.origin,
+              variant,
+              context: contextInput.value.trim()
+            }
           });
           textarea.value = response.message;
           lastGenerated = response.message;

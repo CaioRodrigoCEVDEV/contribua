@@ -206,6 +206,21 @@ h1, h2, h3 { margin: 0; }
 .modal-textarea:focus { outline: none; border-color: var(--green-dark); box-shadow: 0 0 0 3px #00c98933; }
 .message-context { margin-bottom: 14px; }
 .modal-context { min-height: 68px; resize: vertical; font-size: 14px; }
+.message-presets { display: grid; gap: 12px; margin-bottom: 16px; }
+.preset-group { display: grid; gap: 6px; }
+.preset-label { font-size: 12px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; color: var(--muted); }
+.preset-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.preset-chip {
+  border: 1px solid var(--input-border); background: var(--input-bg); color: var(--ink);
+  padding: 8px 14px; border-radius: 999px; font: 600 13px/1 inherit; cursor: pointer;
+  transition: background-color .15s, border-color .15s, color .15s;
+}
+.preset-chip:hover { border-color: var(--green-dark); }
+.preset-chip.is-active { background: var(--mint); border-color: var(--green-dark); color: var(--green-dark); }
+.preset-chip:focus-visible { outline: none; box-shadow: 0 0 0 3px #00c98933; }
+.message-status { margin: -4px 0 14px; font-size: 13px; line-height: 1.45; color: var(--muted); }
+.message-status[hidden] { display: none; }
+.message-status.is-error { color: var(--red); }
 .settings-section-title { font-size: 12px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
 .field-check { display: flex; align-items: center; gap: 10px; }
 .field-check input { width: auto; }

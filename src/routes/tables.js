@@ -307,7 +307,9 @@ router.post("/:id/message", async (req, res, next) => {
           link
         },
         variant: req.body?.variant,
-        context
+        context,
+        period: req.body?.period,
+        type: req.body?.type
       });
     } catch (error) {
       return res.status(502).json({ error: error.message || "Falha ao gerar a mensagem." });

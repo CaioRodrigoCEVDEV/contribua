@@ -214,7 +214,7 @@
     }
     if (action === "edit") openEdit(button.dataset.id);
     if (action === "duplicate") duplicateTable(button.dataset.id, button.dataset.title);
-    if (action === "message") generateMessage(button.dataset.id);
+    if (action === "message") openMessageModal(button.dataset.id);
   });
 
   function buildModal(html) {
@@ -225,132 +225,208 @@
     return overlay;
   }
 
-  async function generateMessage(id) {
+  const MESSAGE_PERIODS = [
+    { key: "auto", label: "Automático" },
+    { key: "manha", label: "Manhã" },
+    { key: "tarde", label: "Tarde" },
+    { key: "noite", label: "Noite" }
+  ];
+
+  const MESSAGE_TYPES = [
+    { key: "padrao", label: "Padrão" },
+    { key: "aviso", label: "Aviso" },
+    { key: "atualizacao", label: "Atualização" },
+    { key: "curta", label: "Curta" }
+  ];
+
+  function presetChips(group, options, selected) {
+    return options.map((option) => `
+      <button class="preset-chip${option.key === selected ? " is-active" : ""}" type="button"
+        data-preset="${group}" data-value="${option.key}" aria-pressed="${option.key === selected}">
+        ${option.label}
+      </button>`).join("");
+  }
+
+  function openMessageModal(id) {
+    const state = { period: "auto", type: "padrao", variant: Math.floor(Math.random() * 5) };
     const overlay = buildModal(`
       <h3 class="modal-title">Mensagem para o WhatsApp</h3>
-      <p class="modal-message">Gerando a mensagem com IA, aguarde...</p>`);
-    try {
-      let variant = Math.floor(Math.random() * 5);
-      const [messageResponse, settingsResponse] = await Promise.all([
-        App.api(`/api/tables/${id}/message`, {
-          method: "POST",
-          body: { origin: window.location.origin, variant }
-        }),
-        App.api("/api/settings").catch(() => null)
-      ]);
-      const message = messageResponse.message;
-      const imageUrl = messageResponse.image_url || "";
-      const crm = settingsResponse && settingsResponse.settings && settingsResponse.settings.crm;
-      const crmConfigured = Boolean(crm && crm.configured);
-      const crmSendImage = crm ? crm.send_image !== false : true;
-      const modal = overlay.querySelector(".modal");
-      const modalTitle = messageResponse.complete
-        ? "Mensagem de contribuição concluída"
-        : "Mensagem para o WhatsApp";
-      modal.innerHTML = `
-        <h3 class="modal-title">${modalTitle}</h3>
-        <label class="field message-context">
-          <span>Contexto para a IA (opcional)</span>
-          <textarea class="modal-context" id="message-context" maxlength="500" rows="2" placeholder="Ex.: lembrar que o prazo é sexta-feira e agradecer a quem já pagou."></textarea>
-          <small>Use este campo para dar uma referência e gerar uma nova versão da mensagem.</small>
-        </label>
-        <textarea class="modal-textarea" id="generated-message"></textarea>
-        <p class="crm-status" data-role="crm-status" role="status" aria-live="polite" hidden></p>
-        <div class="modal-actions modal-actions-wrap">
-          <button class="btn" type="button" data-role="regenerate">Gerar outra versão</button>
-          <button class="btn" type="button" data-role="close">Fechar</button>
-          <button class="btn" type="button" data-role="copy">Copiar</button>
-          <button class="btn btn-dark" type="button" data-role="crm" ${crmConfigured ? "" : "disabled"}>Enviar ao CRM</button>
-          <button class="btn btn-primary" type="button" data-role="whatsapp">Abrir no WhatsApp</button>
-        </div>`;
-      const textarea = modal.querySelector("#generated-message");
-      const contextInput = modal.querySelector("#message-context");
-      textarea.value = message;
-      let lastGenerated = message;
-      let regenerating = false;
-      const regenerateButton = modal.querySelector('[data-role="regenerate"]');
-      regenerateButton.addEventListener("click", async () => {
-        if (regenerating) return;
-        if (textarea.value !== lastGenerated) {
-          const ok = await App.confirm("O texto editado será substituído pela nova versão.", {
-            title: "Gerar nova versão?",
-            confirmLabel: "Gerar"
-          });
-          if (!ok) return;
-        }
-        regenerating = true;
-        regenerateButton.disabled = true;
-        regenerateButton.textContent = "Gerando...";
-        variant += 1;
-        try {
-          const response = await App.api(`/api/tables/${id}/message`, {
+      <p class="modal-message">Escolha uma sugestão, ajuste o contexto se quiser e clique em gerar.</p>
+      <div class="message-presets">
+        <div class="preset-group">
+          <span class="preset-label">Período</span>
+          <div class="preset-chips" role="group" aria-label="Período da mensagem">
+            ${presetChips("period", MESSAGE_PERIODS, state.period)}
+          </div>
+        </div>
+        <div class="preset-group">
+          <span class="preset-label">Tipo</span>
+          <div class="preset-chips" role="group" aria-label="Tipo da mensagem">
+            ${presetChips("type", MESSAGE_TYPES, state.type)}
+          </div>
+        </div>
+      </div>
+      <label class="field message-context">
+        <span>Contexto para a IA (opcional)</span>
+        <textarea class="modal-context" id="message-context" maxlength="500" rows="2" placeholder="Ex.: lembrar que o prazo é sexta-feira e agradecer a quem já pagou."></textarea>
+        <small>Use este campo para dar uma referência e gerar uma versão personalizada.</small>
+      </label>
+      <p class="message-status" data-role="message-status" role="status" aria-live="polite" hidden></p>
+      <div class="modal-actions">
+        <button class="btn" type="button" data-role="close">Fechar</button>
+        <button class="btn btn-primary" type="button" data-role="generate">Gerar mensagem</button>
+      </div>`);
+    const modal = overlay.querySelector(".modal");
+    modal.querySelectorAll("[data-preset]").forEach((chip) => {
+      chip.addEventListener("click", () => {
+        const group = chip.dataset.preset;
+        state[group] = chip.dataset.value;
+        modal.querySelectorAll(`[data-preset="${group}"]`).forEach((item) => {
+          const active = item === chip;
+          item.classList.toggle("is-active", active);
+          item.setAttribute("aria-pressed", String(active));
+        });
+      });
+    });
+    modal.querySelector('[data-role="close"]').addEventListener("click", () => overlay.remove());
+    const generateButton = modal.querySelector('[data-role="generate"]');
+    generateButton.addEventListener("click", async () => {
+      const status = modal.querySelector('[data-role="message-status"]');
+      status.hidden = true;
+      status.classList.remove("is-error");
+      generateButton.disabled = true;
+      generateButton.textContent = "Gerando...";
+      try {
+        const [messageResponse, settingsResponse] = await Promise.all([
+          App.api(`/api/tables/${id}/message`, {
             method: "POST",
             body: {
               origin: window.location.origin,
-              variant,
-              context: contextInput.value.trim()
+              variant: state.variant,
+              context: modal.querySelector("#message-context").value.trim(),
+              period: state.period,
+              type: state.type
             }
-          });
-          textarea.value = response.message;
-          lastGenerated = response.message;
-          modal.querySelector(".modal-title").textContent = response.complete
-            ? "Mensagem de contribuição concluída"
-            : "Mensagem para o WhatsApp";
-          App.toast("Nova versão gerada!");
-        } catch (error) {
-          App.toast(error.message);
-        } finally {
-          regenerating = false;
-          regenerateButton.disabled = false;
-          regenerateButton.textContent = "Gerar outra versão";
-        }
-      });
-      modal.querySelector('[data-role="close"]').addEventListener("click", () => overlay.remove());
-      modal.querySelector('[data-role="copy"]').addEventListener("click", async () => {
-        await navigator.clipboard.writeText(textarea.value).catch(() => {});
-        App.toast("Mensagem copiada!");
-      });
-      modal.querySelector('[data-role="whatsapp"]').addEventListener("click", async () => {
-        const text = textarea.value;
-        const isMobile = /android|iphone|ipad|ipod/i.test(navigator.userAgent);
-        if (isMobile && navigator.share) {
-          try {
-            await navigator.share({ text });
-            return;
-          } catch (error) {
-            if (error && error.name === "AbortError") return;
-          }
-        }
-        const base = isMobile ? "https://wa.me/" : "https://web.whatsapp.com/send";
-        window.open(`${base}?text=${encodeURIComponent(text)}`, "_blank", "noopener");
-      });
-
-      const crmButton = modal.querySelector('[data-role="crm"]');
-      const crmStatus = modal.querySelector('[data-role="crm-status"]');
-      if (crmConfigured && window.ContribuaCrm) {
-        window.ContribuaCrm.createSender({
-          api: App.api,
-          button: crmButton,
-          status: crmStatus,
-          getMessage: () => textarea.value,
-          getImageUrl: () => (crmSendImage ? imageUrl : "")
-        });
-      } else {
-        crmButton.disabled = true;
-        crmStatus.hidden = false;
-        crmStatus.classList.add("is-info");
-        crmStatus.textContent = "Integração com o CRM não configurada. Acesse Configurações → Integração com CRM.";
+          }),
+          App.api("/api/settings").catch(() => null)
+        ]);
+        renderMessageResult(overlay, id, messageResponse, settingsResponse, state);
+      } catch (error) {
+        status.hidden = false;
+        status.classList.add("is-error");
+        status.textContent = error.message;
+        generateButton.disabled = false;
+        generateButton.textContent = "Gerar mensagem";
       }
-    } catch (error) {
-      const modal = overlay.querySelector(".modal");
-      modal.innerHTML = `
-        <h3 class="modal-title">Não foi possível gerar</h3>
-        <p class="modal-message"></p>
-        <div class="modal-actions">
-          <button class="btn btn-primary" type="button" data-role="close">Fechar</button>
-        </div>`;
-      modal.querySelector(".modal-message").textContent = error.message;
-      modal.querySelector('[data-role="close"]').addEventListener("click", () => overlay.remove());
+    });
+  }
+
+  function renderMessageResult(overlay, id, messageResponse, settingsResponse, state) {
+    const message = messageResponse.message;
+    let variant = state.variant;
+    const imageUrl = messageResponse.image_url || "";
+    const crm = settingsResponse && settingsResponse.settings && settingsResponse.settings.crm;
+    const crmConfigured = Boolean(crm && crm.configured);
+    const crmSendImage = crm ? crm.send_image !== false : true;
+    const modal = overlay.querySelector(".modal");
+    const modalTitle = messageResponse.complete
+      ? "Mensagem de contribuição concluída"
+      : "Mensagem para o WhatsApp";
+    modal.innerHTML = `
+      <h3 class="modal-title">${modalTitle}</h3>
+      <label class="field message-context">
+        <span>Contexto para a IA (opcional)</span>
+        <textarea class="modal-context" id="message-context" maxlength="500" rows="2" placeholder="Ex.: lembrar que o prazo é sexta-feira e agradecer a quem já pagou."></textarea>
+        <small>Use este campo para dar uma referência e gerar uma nova versão da mensagem.</small>
+      </label>
+      <textarea class="modal-textarea" id="generated-message"></textarea>
+      <p class="crm-status" data-role="crm-status" role="status" aria-live="polite" hidden></p>
+      <div class="modal-actions modal-actions-wrap">
+        <button class="btn" type="button" data-role="regenerate">Gerar outra versão</button>
+        <button class="btn" type="button" data-role="close">Fechar</button>
+        <button class="btn" type="button" data-role="copy">Copiar</button>
+        <button class="btn btn-dark" type="button" data-role="crm" ${crmConfigured ? "" : "disabled"}>Enviar ao CRM</button>
+        <button class="btn btn-primary" type="button" data-role="whatsapp">Abrir no WhatsApp</button>
+      </div>`;
+    const textarea = modal.querySelector("#generated-message");
+    const contextInput = modal.querySelector("#message-context");
+    textarea.value = message;
+    let lastGenerated = message;
+    let regenerating = false;
+    const regenerateButton = modal.querySelector('[data-role="regenerate"]');
+    regenerateButton.addEventListener("click", async () => {
+      if (regenerating) return;
+      if (textarea.value !== lastGenerated) {
+        const ok = await App.confirm("O texto editado será substituído pela nova versão.", {
+          title: "Gerar nova versão?",
+          confirmLabel: "Gerar"
+        });
+        if (!ok) return;
+      }
+      regenerating = true;
+      regenerateButton.disabled = true;
+      regenerateButton.textContent = "Gerando...";
+      variant += 1;
+      try {
+        const response = await App.api(`/api/tables/${id}/message`, {
+          method: "POST",
+          body: {
+            origin: window.location.origin,
+            variant,
+            context: contextInput.value.trim(),
+            period: state.period,
+            type: state.type
+          }
+        });
+        textarea.value = response.message;
+        lastGenerated = response.message;
+        modal.querySelector(".modal-title").textContent = response.complete
+          ? "Mensagem de contribuição concluída"
+          : "Mensagem para o WhatsApp";
+        App.toast("Nova versão gerada!");
+      } catch (error) {
+        App.toast(error.message);
+      } finally {
+        regenerating = false;
+        regenerateButton.disabled = false;
+        regenerateButton.textContent = "Gerar outra versão";
+      }
+    });
+    modal.querySelector('[data-role="close"]').addEventListener("click", () => overlay.remove());
+    modal.querySelector('[data-role="copy"]').addEventListener("click", async () => {
+      await navigator.clipboard.writeText(textarea.value).catch(() => {});
+      App.toast("Mensagem copiada!");
+    });
+    modal.querySelector('[data-role="whatsapp"]').addEventListener("click", async () => {
+      const text = textarea.value;
+      const isMobile = /android|iphone|ipad|ipod/i.test(navigator.userAgent);
+      if (isMobile && navigator.share) {
+        try {
+          await navigator.share({ text });
+          return;
+        } catch (error) {
+          if (error && error.name === "AbortError") return;
+        }
+      }
+      const base = isMobile ? "https://wa.me/" : "https://web.whatsapp.com/send";
+      window.open(`${base}?text=${encodeURIComponent(text)}`, "_blank", "noopener");
+    });
+
+    const crmButton = modal.querySelector('[data-role="crm"]');
+    const crmStatus = modal.querySelector('[data-role="crm-status"]');
+    if (crmConfigured && window.ContribuaCrm) {
+      window.ContribuaCrm.createSender({
+        api: App.api,
+        button: crmButton,
+        status: crmStatus,
+        getMessage: () => textarea.value,
+        getImageUrl: () => (crmSendImage ? imageUrl : "")
+      });
+    } else {
+      crmButton.disabled = true;
+      crmStatus.hidden = false;
+      crmStatus.classList.add("is-info");
+      crmStatus.textContent = "Integração com o CRM não configurada. Acesse Configurações → Integração com CRM.";
     }
   }
 

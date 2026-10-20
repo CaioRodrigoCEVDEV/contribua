@@ -85,6 +85,24 @@ const COMPLETE_STYLES = [
 const UPDATE_LINK_LABEL = "📲 Acompanhe a lista e veja quem já pagou:";
 const COMPLETE_LINK_LABEL = "📲 Confira a lista e veja o resultado:";
 
+const PERIOD_GREETINGS = {
+  manha: "Bom dia, pessoal! ☀️",
+  tarde: "Boa tarde, pessoal! 🌤️",
+  noite: "Boa noite, pessoal! 🌙"
+};
+
+const PERIOD_INSTRUCTIONS = {
+  manha: "Comece a mensagem com uma saudação de bom dia.",
+  tarde: "Comece a mensagem com uma saudação de boa tarde.",
+  noite: "Comece a mensagem com uma saudação de boa noite."
+};
+
+const TYPE_INSTRUCTIONS = {
+  aviso: "O objetivo desta mensagem é um aviso/lembrete importante: destaque o prazo, as pendências e a necessidade de pagamento.",
+  atualizacao: "O objetivo desta mensagem é informar a atualização atual dos pagamentos, como um status do andamento.",
+  curta: "A mensagem deve ser bem curta e objetiva, com poucas linhas, mantendo apenas os valores essenciais, o PIX e o link."
+};
+
 function pickStyle(styles, variant) {
   if (typeof variant === "number" && Number.isFinite(variant)) {
     return styles[Math.abs(Math.trunc(variant)) % styles.length];
@@ -104,11 +122,11 @@ export function isContributionComplete(data) {
   return Number(data.totalParticipants) > 0 && Number(data.pendingParticipants) === 0;
 }
 
-function buildUpdateDraft(data, style) {
+function buildUpdateDraft(data, style, greeting = style.greeting) {
   const label = data.installmentLabel || "1ª PARCELA";
   const event = eventName(data);
   const lines = [
-    style.greeting,
+    greeting,
     "",
     style.intro(event),
     "",
@@ -132,12 +150,12 @@ function buildUpdateDraft(data, style) {
   return lines.join("\n");
 }
 
-function buildCompleteDraft(data, style) {
+function buildCompleteDraft(data, style, greeting = style.greeting) {
   const event = eventName(data);
   const lines = [
     style.headline,
     "",
-    style.greeting,
+    greeting,
     "",
     `✅ Status: 100% concluído`,
     `👥 Participantes: ${data.totalParticipants} pessoas`,
@@ -154,11 +172,48 @@ function buildCompleteDraft(data, style) {
   return lines.join("\n");
 }
 
-export function buildDraft(data, variant) {
+function buildShortDraft(data, style, greeting) {
+  const event = eventName(data);
   if (isContributionComplete(data)) {
-    return buildCompleteDraft(data, pickStyle(COMPLETE_STYLES, variant));
+    const lines = [
+      greeting,
+      "",
+      `✅ ${event} está 100% concluída!`,
+      `💰 Total arrecadado: ${brl(data.receivedCents)}`,
+      "🏆 Pendentes: 0",
+      "",
+      style.thanks
+    ];
+    if (data.link) lines.push("", COMPLETE_LINK_LABEL, data.link);
+    return lines.join("\n");
   }
-  return buildUpdateDraft(data, pickStyle(UPDATE_STYLES, variant));
+
+  const label = data.installmentLabel || "1ª PARCELA";
+  const lines = [
+    greeting,
+    "",
+    `❗ Falta arrecadar: ${brl(data.pendingCents)}`,
+    `👥 Pendentes: ${data.pendingParticipants}`,
+    `💵 ${label} por pessoa: ${brl(data.installmentCents)}`,
+    "",
+    `🤑 PIX — ${data.pixName || "-"}`,
+    `🔑 ${data.pixKey || "-"}`
+  ];
+  if (data.link) lines.push("", UPDATE_LINK_LABEL, data.link);
+  return lines.join("\n");
+}
+
+function buildDraftForStyle(data, style, options = {}) {
+  const greeting = PERIOD_GREETINGS[options.period] || style.greeting;
+  if (options.type === "curta") return buildShortDraft(data, style, greeting);
+  if (isContributionComplete(data)) return buildCompleteDraft(data, style, greeting);
+  return buildUpdateDraft(data, style, greeting);
+}
+
+export function buildDraft(data, variant, options = {}) {
+  const complete = isContributionComplete(data);
+  const style = pickStyle(complete ? COMPLETE_STYLES : UPDATE_STYLES, variant);
+  return buildDraftForStyle(data, style, options);
 }
 
 function withLink(message, link, label) {
@@ -166,9 +221,9 @@ function withLink(message, link, label) {
   return `${message}\n\n${label}\n${link}`;
 }
 
-function buildSystemPrompt(data, style) {
+function buildSystemPrompt(data, style, options = {}) {
   const complete = isContributionComplete(data);
-  return [
+  const lines = [
     "Você escreve mensagens de atualização de vaquinha/contribuição para grupos de WhatsApp, em português do Brasil.",
     "",
     `Estilo desejado: ${style.tone}.`,
@@ -184,24 +239,40 @@ function buildSystemPrompt(data, style) {
     "- Não invente valores, pagamentos ou informações que não estejam no rascunho.",
     "- Se houver um contexto fornecido pelo usuário, incorpore-o de forma natural sem inventar informações além dele.",
     "- Não use markdown (sem *, # ou crases). Retorne apenas a mensagem final."
-  ].join("\n");
+  ];
+  if (PERIOD_INSTRUCTIONS[options.period]) {
+    lines.push(`- ${PERIOD_INSTRUCTIONS[options.period]}`);
+  }
+  if (TYPE_INSTRUCTIONS[options.type]) {
+    lines.push(`- ${TYPE_INSTRUCTIONS[options.type]}`);
+  }
+  return lines.join("\n");
 }
 
-function buildUserPrompt(data, draft, style, context) {
+function buildUserPrompt(data, draft, style, context, options = {}) {
   const complete = isContributionComplete(data);
   const lines = [
     `Reescreva a mensagem abaixo em uma versão ${style.tone}, pronta para enviar no grupo do WhatsApp.`,
     "Produza uma versão original e diferente de fórmulas prontas; não copie o rascunho literalmente.",
     "",
     "Regras:",
-    "- Mantenha EXATAMENTE a mesma estrutura: cada informação em sua própria linha, com uma linha em branco entre os blocos.",
     "- NÃO junte tudo em um único parágrafo.",
-    "- Preserve TODOS os números, valores, emojis, nomes e o link no final sem alteração.",
+    "- Preserve TODOS os números, valores, emojis, nomes e o link no final sem alteração."
+  ];
+  if (options.type === "curta") {
+    lines.push(
+      "- Produza uma mensagem curta e objetiva, mantendo apenas os dados essenciais, o PIX e o link.",
+      "- Não acrescente blocos longos nem informações que não estejam no rascunho."
+    );
+  } else {
+    lines.push("- Mantenha EXATAMENTE a mesma estrutura: cada informação em sua própria linha, com uma linha em branco entre os blocos.");
+  }
+  lines.push(
     complete
       ? "- A mensagem deve deixar claro que a contribuição foi 100% concluída e agradecer a todos."
       : "- A mensagem deve lembrar delicadamente quem ainda não pagou e manter o PIX.",
     "- Não use markdown."
-  ];
+  );
   if (context) {
     lines.push(
       "",
@@ -223,13 +294,22 @@ function buildUserPrompt(data, draft, style, context) {
   return lines.join("\n");
 }
 
-export async function generateWhatsappMessage({ apiKey, baseUrl, model, data, variant, context }) {
+export const MESSAGE_PERIODS = ["auto", "manha", "tarde", "noite"];
+export const MESSAGE_TYPES = ["padrao", "aviso", "atualizacao", "curta"];
+
+function normalizeOption(value, allowed, fallback) {
+  return allowed.includes(value) ? value : fallback;
+}
+
+export async function generateWhatsappMessage({ apiKey, baseUrl, model, data, variant, context, period, type }) {
   if (!apiKey) throw new Error("API key não configurada.");
 
   const cleanContext = String(context || "").trim().slice(0, 500);
+  const selectedPeriod = normalizeOption(period, MESSAGE_PERIODS, "auto");
+  const selectedType = normalizeOption(type, MESSAGE_TYPES, "padrao");
   const complete = isContributionComplete(data);
   const style = pickStyle(complete ? COMPLETE_STYLES : UPDATE_STYLES, variant);
-  const draft = complete ? buildCompleteDraft(data, style) : buildUpdateDraft(data, style);
+  const draft = buildDraftForStyle(data, style, { period: selectedPeriod, type: selectedType });
   const linkLabel = complete ? COMPLETE_LINK_LABEL : UPDATE_LINK_LABEL;
   const url = `${(baseUrl || DEFAULT_BASE_URL).replace(/\/+$/, "")}/chat/completions`;
   const controller = new AbortController();
@@ -247,8 +327,8 @@ export async function generateWhatsappMessage({ apiKey, baseUrl, model, data, va
       body: JSON.stringify({
         model: model || "gpt-5.6-luna",
         messages: [
-          { role: "system", content: buildSystemPrompt(data, style) },
-          { role: "user", content: buildUserPrompt(data, draft, style, cleanContext) }
+          { role: "system", content: buildSystemPrompt(data, style, { period: selectedPeriod, type: selectedType }) },
+          { role: "user", content: buildUserPrompt(data, draft, style, cleanContext, { period: selectedPeriod, type: selectedType }) }
         ]
       })
     });
@@ -278,7 +358,8 @@ export async function generateWhatsappMessage({ apiKey, baseUrl, model, data, va
   if (!raw) return withLink(draft, data.link, linkLabel);
 
   let message = String(raw).trim().replace(/^```[a-z]*\n?/i, "").replace(/```$/, "").trim();
-  const enoughLines = message.split("\n").filter((line) => line.trim()).length >= 6;
+  const minLines = selectedType === "curta" ? 3 : 6;
+  const enoughLines = message.split("\n").filter((line) => line.trim()).length >= minLines;
   if (!enoughLines) message = draft;
   return withLink(message, data.link, linkLabel);
 }

@@ -20,6 +20,15 @@ test("mantém o botão e o fluxo original de envio pelo WhatsApp", async () => {
   assert.match(dashboard, /Gerar outra versão/);
   assert.match(dashboard, /id="message-context"/);
   assert.match(dashboard, /context: contextInput\.value\.trim\(\)/);
+  assert.match(dashboard, /data-role="generate"/);
+  assert.match(dashboard, /presetChips\("period"/);
+  assert.match(dashboard, /presetChips\("type"/);
+  assert.match(dashboard, /"Manhã"/);
+  assert.match(dashboard, /"Aviso"/);
+  assert.match(dashboard, /"Atualização"/);
+  assert.match(dashboard, /"Curta"/);
+  assert.match(dashboard, /period: state\.period/);
+  assert.match(dashboard, /type: state\.type/);
   assert.doesNotMatch(dashboard, /if \(event\.target === overlay\) overlay\.remove\(\)/);
 });
 

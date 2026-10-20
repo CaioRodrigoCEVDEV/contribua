@@ -96,6 +96,56 @@ test("envia o contexto do usuário no prompt da IA", async () => {
   assert.match(requestBody.messages[0].content, /Estilo desejado/);
 });
 
+test("aplica a saudação do período e a versão curta", () => {
+  const data = baseData();
+  const morning = buildDraft(data, "classica", { period: "manha" });
+  assert.match(morning, /Bom dia/);
+
+  const short = buildDraft(data, "classica", { type: "curta" });
+  assert.match(short, /Falta arrecadar/);
+  assert.match(short, /PIX — Júlia/);
+  assert.match(short, /084\.165\.811-00/);
+  assert.match(short, /https:\/\/contribua\.example\.com\/t\/espaco-mirante/);
+  assert.ok(short.split("\n").length < morning.split("\n").length);
+});
+
+test("envia as instruções de período e tipo no prompt da IA", async () => {
+  const originalFetch = globalThis.fetch;
+  let requestBody = null;
+  globalThis.fetch = async (url, options) => {
+    requestBody = JSON.parse(options.body);
+    return new Response(
+      JSON.stringify({
+        choices: [
+          {
+            message: {
+              content: "Boa noite!\n\nFalta arrecadar\n\nPIX\n\nLink"
+            }
+          }
+        ]
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
+    );
+  };
+
+  try {
+    await generateWhatsappMessage({
+      apiKey: "test-key",
+      baseUrl: "https://8.8.8.8/v1",
+      model: "test-model",
+      data: baseData(),
+      variant: "classica",
+      period: "noite",
+      type: "aviso"
+    });
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+
+  assert.match(requestBody.messages[0].content, /saudação de boa noite/);
+  assert.match(requestBody.messages[0].content, /aviso\/lembrete/);
+});
+
 test("gera mensagem de finalização quando todos já pagaram", () => {
   const data = baseData({
     paidParticipants: 16,

@@ -62,9 +62,14 @@
     setText("progress-percent", `${progress}%`);
     setText("progress-caption", `${App.money(summary.received_cents)} de ${App.money(totalCents)}`);
 
+    const hasNotes = participants.some((p) => Boolean(p.note && p.note.trim()));
+    const noteHeader = document.getElementById("note-th");
+    if (noteHeader) noteHeader.hidden = !hasNotes;
+
     tbody.innerHTML = "";
     participants.forEach((p, index) => {
       const tr = document.createElement("tr");
+      if (hasNotes && p.note && p.note.trim()) tr.className = "has-note";
       tr.innerHTML = `
         <td data-label="#">${index + 1}</td>
         <td class="participant-name" data-label="Participante"></td>
@@ -74,8 +79,10 @@
             aria-pressed="${p.paid}" ${table.allow_public_edit ? "" : "disabled"}>
             ${p.paid ? "Pago" : "Não pago"}
           </button>
-        </td>`;
+        </td>
+        <td class="participant-note" data-label="Observação" ${hasNotes ? "" : "hidden"}></td>`;
       tr.querySelector(".participant-name").textContent = p.name;
+      tr.querySelector(".participant-note").textContent = p.note || "";
       tr.querySelector("button").addEventListener("click", () => toggle(p.id));
       tbody.appendChild(tr);
     });

@@ -622,10 +622,14 @@
   function participantRow(p, index) {
     const row = document.createElement("div");
     row.className = "participant-row";
+    if (p.note && p.note.trim()) row.classList.add("has-note");
     row.dataset.id = p.id;
+    row.dataset.note = p.note || "";
     row.innerHTML = `
       <span class="idx">${index + 1}</span>
       <input type="text" value="${App.escape(p.name)}" data-role="name">
+      <input type="text" value="${App.escape(p.note || "")}" data-role="note" class="note-input"
+        placeholder="Observação" maxlength="120" aria-label="Observação do participante">
       <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)">
         <input type="checkbox" data-role="paid" ${p.paid ? "checked" : ""} style="width:auto"> Pago
       </label>
@@ -645,14 +649,35 @@
     } catch (error) { App.toast(error.message); }
   });
 
-  participantsList.addEventListener("focusout", async (event) => {
-    if (event.target.dataset.role !== "name") return;
+  participantsList.addEventListener("input", (event) => {
+    if (event.target.dataset.role !== "note") return;
     const row = event.target.closest(".participant-row");
-    const name = event.target.value.trim();
-    if (!name) { App.toast("O nome não pode ficar vazio."); return; }
+    row.classList.toggle("has-note", Boolean(event.target.value.trim()));
+  });
+
+  participantsList.addEventListener("focusout", async (event) => {
+    const role = event.target.dataset.role;
+    if (role !== "name" && role !== "note") return;
+    const row = event.target.closest(".participant-row");
+    if (role === "name") {
+      const name = event.target.value.trim();
+      if (!name) { App.toast("O nome não pode ficar vazio."); return; }
+      try {
+        await App.api(`/api/tables/${current.id}/participants/${row.dataset.id}`, { method: "PUT", body: { name } });
+      } catch (error) { App.toast(error.message); }
+      return;
+    }
+    const note = event.target.value.trim().slice(0, 120);
+    if (note === row.dataset.note) return;
     try {
-      await App.api(`/api/tables/${current.id}/participants/${row.dataset.id}`, { method: "PUT", body: { name } });
-    } catch (error) { App.toast(error.message); }
+      await App.api(`/api/tables/${current.id}/participants/${row.dataset.id}`, { method: "PUT", body: { note } });
+      row.dataset.note = note;
+      row.classList.toggle("has-note", Boolean(note));
+      App.toast("Observação salva");
+    } catch (error) {
+      row.classList.toggle("has-note", Boolean(row.dataset.note));
+      App.toast(error.message);
+    }
   });
 
   participantsList.addEventListener("click", async (event) => {

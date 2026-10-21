@@ -20,6 +20,9 @@
   --shadow: #09291b14;
   --pill-ok-bg: #e6f8ee;
   --pill-ok-text: #087b49;
+  --note-bg: #fff1df;
+  --note-accent: #f59e0b;
+  --note-ink: #b45309;
   --topbar-ink: #b9d8cd;
   color-scheme: light;
 }
@@ -45,6 +48,9 @@
   --shadow: #00000055;
   --pill-ok-bg: #123326;
   --pill-ok-text: #4fd79a;
+  --note-bg: #3a2a12;
+  --note-accent: #fbbf24;
+  --note-ink: #fbbf24;
   --topbar-ink: #9db0a8;
   color-scheme: dark;
 }
@@ -172,6 +178,10 @@ h1, h2, h3 { margin: 0; }
 .participant-row .idx { width: 26px; text-align: center; color: var(--muted); font-size: 14px; }
 .participant-row input[type="text"] { flex: 1; border: 1px solid transparent; border-radius: 8px; padding: 7px 9px; font: 15px inherit; color: var(--ink); background: transparent; }
 .participant-row input[type="text"]:focus { outline: none; border-color: var(--green-dark); background: var(--surface-2); }
+.participant-row input[data-role="note"] { flex: 1.2; font-size: 14px; }
+.participant-row input[data-role="note"]::placeholder { color: var(--muted); opacity: .8; }
+.participant-row.has-note { background: var(--note-bg); box-shadow: inset 3px 0 0 var(--note-accent); }
+.participant-row.has-note input[data-role="note"] { color: var(--note-ink); font-weight: 600; }
 .participant-row .del { border: 0; background: transparent; color: var(--red); cursor: pointer; font-weight: 700; }
 .add-row { display: flex; gap: 10px; margin-top: 12px; }
 .add-row input { flex: 1; border: 1px solid var(--input-border); border-radius: 11px; padding: 11px 13px; font: 15px inherit; color: var(--ink); background: var(--input-bg); }

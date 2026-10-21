@@ -46,14 +46,21 @@ th small { font-size:13px; }
 td { padding:4px 12px; border-top:1px solid var(--line); border-right:1px solid #e5ebec; height:31px; }
 tbody tr:nth-child(even) { background:#f5f8f7; }
 tbody tr:hover { background:#eef8f2; }
+tbody tr.has-note,
+tbody tr.has-note:nth-child(even) { background:#fff1df; }
+tbody tr.has-note:hover { background:#ffe7c7; }
+tbody tr.has-note td { border-top-color:#f3c98b; }
+tbody tr.has-note .participant-note { color:#b45309; font-weight:600; }
 .number { width:48px; text-align:center; }
 .name { min-width:150px; }
 .amount { min-width:140px; text-align:center; }
+.note { min-width:160px; }
+th[hidden], td[hidden] { display:none; }
 .participant-name { font-size:18px; font-weight:600; }
+.participant-note { font-size:14px; color:#4a5560; white-space:normal; overflow-wrap:anywhere; }
 td:nth-child(1) { text-align:center; font-size:17px; }
 td:nth-child(3) { text-align:center; white-space:nowrap; font-size:17px; }
-td:nth-child(4) { text-align:center; min-width:125px; }
-td:last-child { text-align:center; color:#6d747b; }
+td:nth-child(4) { text-align:center; min-width:125px; color:#6d747b; }
 .status-toggle {
   border:0; border-radius:10px; padding:6px 12px; min-width:112px; cursor:pointer;
   font:700 14px inherit; font-weight:700; transition:transform .12s, filter .12s;
@@ -203,6 +210,9 @@ td:last-child { text-align:center; color:#6d747b; }
     border: 1px solid #e4ebea; border-radius: 14px; background: #fff;
   }
   tbody tr:nth-child(even), tbody tr:hover { background: #fff; }
+  tbody tr.has-note, tbody tr.has-note:nth-child(even), tbody tr.has-note:hover {
+    background: #fff1df; border-color: #f3c98b;
+  }
   tbody td {
     display: flex; align-items: center; justify-content: space-between; gap: 12px;
     height: auto; padding: 5px 0; border: 0; text-align: right;
@@ -218,6 +228,8 @@ td:last-child { text-align:center; color:#6d747b; }
   }
   tbody td:nth-child(2)::before { content: none; }
   tbody td:nth-child(4) { min-width: 0; }
+  tbody td:nth-child(5) { align-items: flex-start; }
+  tbody td:nth-child(5)::before { padding-top: 2px; }
 }
 
 @media print {
